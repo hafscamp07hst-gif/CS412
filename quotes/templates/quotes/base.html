@@ -1,0 +1,33 @@
+<!--
+File: base.html
+Author: Sung Tae Hwang (sthwang@bu.edu), 2026-09-16
+Description: Provide the shared layout, navigation, and stylesheet.
+-->
+{% load static %}
+<!DOCTYPE html>
+<head>
+    <title>Albert Camus Quotes</title>
+    <link rel="stylesheet" href="{% static 'quotes/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Albert Camus</h1>
+        <p>Quote of the Day</p>
+
+        <nav>
+            <a href="{% url 'quotes:quote' %}">Random Quote</a>
+            <a href="{% url 'quotes:show_all' %}">All Quotes and Images</a>
+            <a href="{% url 'quotes:about' %}">About</a>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>Created by Sung Tae Hwang | CS412 | Boston University</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% extends "quotes/base.html" %}
+<!--
+File: show_all.html
+Author: Sung Tae Hwang (sthwang@bu.edu), 2026-09-16
+Description: Display all quotes and images using separate loops.
+-->
+
+{% block content %}
+<section class="card">
+    <h2>All Quotes</h2>
+
+    {% for quote in quotes %}
+        <blockquote>
+            <p>{{ quote }}</p>
+        </blockquote>
+    {% endfor %}
+</section>
+
+<section class="card">
+    <h2>All Images</h2>
+
+    {% for image in images %}
+        <img class="portrait" src="{{ image }}">
+    {% endfor %}
+</section>
+{% endblock %}

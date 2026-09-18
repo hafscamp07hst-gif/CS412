@@ -1,0 +1,24 @@
+{% extends "quotes/base.html" %}
+<!--
+File: quote.html
+Author: Sung Tae Hwang (sthwang@bu.edu), 2026-09-16
+Description: Display a randomly selected quote and image.
+-->
+
+{% block content %}
+<section class="card">
+    <h2>Quote of the Day</h2>
+
+    <img class="portrait" src="{{ image }}">
+
+    <blockquote>
+        <p>{{ quote }}</p>
+    </blockquote>
+
+    <p>— Albert Camus</p>
+
+    <a class="button" href="{% url 'quotes:quote' %}">
+        Show Another Quote
+    </a>
+</section>
+{% endblock %}
