@@ -19,7 +19,7 @@ def home(request):
     return HttpResponse(response_text)
 
 def home_page(request):
-    '''Respond to the URL'', delegate work to a template.'''
+    '''Respond to the URL'home_page', delegate work to a template.'''
 
     template_name = 'hw/home.html'
     #dictionary of context variables(key-value pairs)
@@ -31,3 +31,17 @@ def home_page(request):
         "number": random.randint(1,10),
     }
     return render(request,template_name, context)
+
+def about(request):
+    '''Respond to the URL'about', delegate work to a template.'''
+
+    template_name = 'hw/about.html'
+    #dictionary of context variables(key-value pairs)
+
+    context = {
+        "time": time.ctime(),
+        "letter1": chr(random.randint(65,90)),
+        "letter2": chr(random.randint(65,90)),
+        "number": random.randint(1,10),
+    }
+    return render(request,template_name, context = context)

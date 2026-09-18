@@ -6,15 +6,15 @@ Description: Style the quotes website.
 
 body {
     margin: 0;
-    background-color: #f4f0e8;
-    color: #222222;
+    background-color: white;
+    color: black;
     font-family: Georgia, serif;
     line-height: 1.6;
 }
 
 header {
     padding: 25px;
-    background-color: #263d32;
+    background-color: black;
     color: white;
     text-align: center;
 }
@@ -43,7 +43,7 @@ main {
 }
 
 h2 {
-    color: #263d32;
+    color: #2a4237;
 }
 
 .portrait {
@@ -58,7 +58,7 @@ h2 {
 blockquote {
     margin: 25px 0;
     padding: 15px;
-    background-color: #f4f0e8;
+    background-color: white;
     border-left: 4px solid #8a7045;
     font-size: 20px;
 }
@@ -68,7 +68,6 @@ blockquote {
     padding: 10px 18px;
     background-color: #263d32;
     color: white;
-    text-decoration: none;
     border-radius: 5px;
 }
 

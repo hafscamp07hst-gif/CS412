@@ -1,0 +1,22 @@
+<!-- hw/templates/hw/about.html -->
+{% load static %}
+<html>
+    <head>
+        <title>About this page!</title>
+        <link rel="stylesheet" href="{% static 'style.css' %}">
+    </head>
+    <body>
+        <nav>
+            <li><a href ="{% url 'home_page' %}">Home</a></li>
+            <li><a href ="{% url 'about_page' %}">About</a></li>
+        </nav>
+        <!-- put page specific content here-->
+         {% block content %}
+         {% endblock %}
+        <footer>
+            The current time is {{time}}.<br>
+            This page has been brought to you by the letters
+            {{letter1}} and {{letter2}} and by the number {{number}}.
+        </footer>
+    </body>
+</html>

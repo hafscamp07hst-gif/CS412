@@ -24,8 +24,6 @@ images = [
 def quote(request):
     """Display one randomly selected quote and image.
 
-    Args:
-        request: The HTTP request received from the browser.
     """
     context = {
         "quote": random.choice(quotes),
@@ -38,8 +36,6 @@ def quote(request):
 def show_all(request):
     """Display every quote and image.
 
-    Args:
-        request: The HTTP request received from the browser.
     """
     context = {
         "quotes": quotes,
@@ -52,7 +48,5 @@ def show_all(request):
 def about(request):
     """Display information about Camus and the website creator.
 
-    Args:
-        request: The HTTP request received from the browser.
     """
     return render(request, "quotes/about.html")

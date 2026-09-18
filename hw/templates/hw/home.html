@@ -1,21 +1,8 @@
 <!-- hw/templates/hw/home.html-->
+{% extends 'hw/base.html' %}
 
-<html>
-    <head>
-        <title>Hello, World!</title>
-    </head>
-    <body>
+    {% block content %}
         <h1>Hello, world!</h1>
-        <p>
-        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Nulla, enim adipisci quis debitis aut commodi dolore dicta consequuntur, similique, non corporis? Molestias sapiente cum, explicabo velit consequatur tempore pariatur distinctio.
-        </p>
-        <p>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Eveniet, a nesciunt ratione animi eum omnis libero quos velit ea similique voluptatem minus consequatur dicta beatae impedit nihil consectetur autem fugiat.
-        </p>
-        <footer>
-            The current time is {{time}}.<br>
-            This page has been brought to you by the letters
-            {{letter1}} and {{letter2}} and by the number {{number}}.
-        </footer>
-    </body>
-</html>
+            hello, world!!
+
+    {% endblock %}
