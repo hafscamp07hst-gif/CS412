@@ -1,0 +1,62 @@
+
+<!--
+File: restaurant/templates/restaurant/order.html
+Name: Sung Tae Hwang
+BU Email: sthwang@bu.edu
+Description: Display a food order form with menu prices, an extra meat
+option, a daily special, special instructions, and customer information.
+-->
+{% extends 'restaurant/base.html' %}
+{% load static %}
+{% block content %}
+    <h1>
+        What is your taste today? 
+    </h1>
+    <h2>
+        <b>Menu</b>
+    </h2>
+    <form action = "{% url 'restaurant:confirmation' %}" method ='POST'>
+        {% csrf_token %}
+        <ul>
+            <input type="checkbox" name = "menu1">
+            <label for ="menu1" class ="menu">Luke's Hot Pot <b>$25</b></label>
+            <ul>
+                <label for ="menu1opt" class ="option">Extra Meat $5</label>
+                <input type ="checkbox" name ="menu1opt"><br>
+            </ul>
+            <input type="checkbox" name = "menu2">
+            <label for ="menu2" class ="menu">Luke's Malatang <b>$30</b></label><br>
+            <input type="checkbox" name = "menu3">
+            <label for ="menu3" class ="menu">Luke's Shrimp Pasta <b>$28</b></label><br>
+            <input type="checkbox" name = "menu4">
+            <label for ="menu4" class ="menu">Luke's Ice Cream <b>$5</b></label>
+        </ul>
+
+        <br><br>
+        <h2><b>Special menu of the day!</b></h2>
+ 
+                <ul>
+                        <input type = checkbox name=special value = '{{special_menu}}'>
+                        <label for="special">{{special_menu}} <b>$5</b></label>
+                </ul>
+        <h2>
+            <b>Special Instructions:</b>
+        </h2>
+        <label for="instruction" class="instruction">Please share any special instructions:</label><br>
+        <textarea name="instruction" placeholder="Allergies or any food preference?"></textarea>
+        <h2>
+            <b>Customer Information:</b>
+        </h2>
+                <label for="name" class="name">Name:</label>
+                <input type="text" name="name" required ><br>
+                <label for="phone" class="phone">Phone:</label>
+                <input type="text" name="phone" required ><br>
+                <label for="email" name="email">Email:</label>
+                <input type="email" name="email" required ><br><br>
+
+    <input type="submit" value ="Submit Your Order!" class = "submit_button">
+
+    </form>
+
+    <br><br><br>
+{% endblock %}

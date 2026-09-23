@@ -1,0 +1,39 @@
+<!--
+File: restaurant/templates/restaurant/base.html
+Name: Sung Tae Hwang
+BU Email: sthwang@bu.edu
+Description: Define the shared restaurant page structure, including
+the page title, stylesheet links, header, content block, and footer.
+-->
+
+{% load static %}
+
+
+<html>
+    <head>
+        <title>Welcome to lukey pookie!</title>
+        <link rel ='stylesheet' href="{% static 'restaurant/style.css' %}">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    </head>
+        <body>
+        <header><b>Luke's Diner</b></header>
+        <nav class="sidebar">
+            <b>Menu</b>
+            <a href="{% url 'restaurant:main' %}">Home</a>
+            <a href="{% url 'restaurant:order' %}">Order Here!</a>
+        </nav>
+        {% block content %}
+        {% endblock %}
+
+    <footer>
+
+        <h1>
+            <b>We make our food with love and passion!</b><br>
+        </h1>
+            <p>CS412 | Sung Tae Hwang | sthwang@bu.edu</p>
+
+    </footer>
+    </body>
+</html>

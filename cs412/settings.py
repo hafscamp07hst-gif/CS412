@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'hw', #NEW
     'quotes', #A1
     'formdata', #Module 2
+    'restaurant', #A2
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,60 @@
+<!--
+File: restaurant/templates/restaurant/confirmation.html
+Name: Sung Tae Hwang
+BU Email: sthwang@bu.edu
+Description: Display the ordered items, total price, special instructions,
+customer information, order time, and estimated pickup time.
+-->
+{% extends 'restaurant/base.html' %}
+{% load static %}
+{% block content %}
+<header>
+    <h3>Thank you!</h3>
+</header>
+<h1>
+    <b>Your Order:</b>
+</h1>
+<ul>
+    {% if menu1 %}
+    {{menu1}} <b>{{menu1opt}}</b><br><br>
+    {% endif %}
+    {% if menu2 %}
+    {{menu2}}<br><br>
+    {% endif %}
+    {% if menu3 %}
+    {{menu3}}<br><br>
+    {% endif %}
+    {% if menu4 %}
+    {{menu4}}<br><br>
+    {% endif %}
+    {% if special %}
+    {{special}}<br><br>
+    {% endif %}
+
+    <br>
+    Your total is <b>${{total}}</b>
+
+</ul>
+<h3>
+    <b>Special Instruction:</b> 
+    {% if instruction %}
+    {{instruction}}
+    {% endif %}
+</h3>
+
+<h3>
+    <b>Customer Information:</b>
+    <br>
+</h3>
+    <b>Name:</b>{{name}}<br>
+    <b>Phone:</b> {{phone}}<br>
+    <b>Email:</b> {{email}}<br>
+
+<h2>
+    Your order time was {{current_time}}
+    <br>
+    Your ready time is {{ready_time}}
+     <br>
+</h2>
+
+{% endblock %}

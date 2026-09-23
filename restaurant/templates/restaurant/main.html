@@ -1,0 +1,29 @@
+<!--
+File: restaurant/templates/restaurant/main.html
+Name: Sung Tae Hwang
+BU Email: sthwang@bu.edu
+Description: Display the restaurant's location, operating hours, photo,
+and a link to the order form.
+-->
+{% extends 'restaurant/base.html' %}
+{% load static %}
+{% block content %}
+    <div class="restaurant-info">
+        <ul class="details">
+            <li>Location: Earth 412 Avengers Tower</li>
+            <li>Hours of Operation: 9:00am ~ 11:00pm</li>
+        </ul>
+        <div class="introduction">
+            <h2>Welcome to Luke's Diner!</h2>
+            <p>Even heroes need a lunch break! Located at Avengers Tower on
+            Earth 412, Luke's Diner is a favorite stop for the Avengers after
+            a long day of saving the world.</p>
+            <p>Thor comes for extra helpings, Tony Stark grabs a quick bite,
+            and everyone stays for the daily special. Pull up a chair and
+            enjoy a meal fit for a hero. No superpowers required!</p>
+        </div>
+    </div>
+    <img class="portrait" src="{% static 'restaurant/images/mainphoto.png' %}">
+
+
+{% endblock %}
