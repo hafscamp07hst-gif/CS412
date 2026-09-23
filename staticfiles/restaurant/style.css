@@ -1,0 +1,157 @@
+/*
+File: static/restaurant/style.css
+Name: Sung Tae Hwang
+BU Email: sthwang@bu.edu
+Description: Basic colors, spacing, and form styles for the restaurant pages.
+*/
+
+body {
+    max-width: 850px;
+    margin: 20px 30px 20px 180px;
+    padding: 20px;
+    background-color: ivory;
+    color: darkslategray;
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+}
+
+header {
+    padding: 15px;
+    background-color: honeydew;
+    text-align: center;
+    font-size: 32px;
+}
+
+h1 {
+    font-size: 28px;
+}
+
+h2 {
+    color: darkolivegreen;
+    font-size: 22px;
+}
+
+h3 {
+    font-size: 18px;
+}
+
+li {
+    margin-bottom: 8px;
+}
+
+a {
+    color: darkolivegreen;
+}
+
+.portrait {
+    width: 100%;
+    height: auto;
+    margin: 15px 0;
+}
+
+.menu {
+    font-size: 18px;
+}
+
+.option {
+    font-size: 16px;
+}
+
+input[type='text'],
+input[type='email'],
+textarea {
+    width: 90%;
+    max-width: 400px;
+    padding: 6px;
+    margin: 5px 0;
+    border: 1px solid gray;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+}
+
+textarea {
+    height: 90px;
+}
+
+.submit_button {
+    padding: 8px 20px;
+    background-color: honeydew;
+    border: 1px solid darkolivegreen;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.home_button {
+    display: inline-block;
+    margin-top: 20px;
+}
+
+footer {
+    margin-top: 30px;
+    padding: 15px;
+    border-top: 1px solid gray;
+    text-align: center;
+}
+
+footer h1 {
+    font-size: 20px;
+}
+
+/* Keep the shared menu on the left while scrolling. */
+.sidebar {
+    position: fixed;
+    top: 40px;
+    left: 20px;
+    width: 120px;
+    padding: 10px;
+    background-color: honeydew;
+}
+
+.sidebar a {
+    display: block;
+    margin-top: 15px;
+}
+
+/* Put the introduction next to the location and opening hours. */
+.restaurant-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.details {
+    flex: 1;
+    min-width: 200px;
+    padding-left: 20px;
+}
+
+.introduction {
+    flex: 1;
+    min-width: 200px;
+}
+
+.introduction h2 {
+    margin-top: 10px;
+}
+
+/* Leave room for the fixed menu on smaller screens too. */
+@media (max-width: 600px) {
+    body {
+        margin: 10px 0 10px 110px;
+        padding: 12px;
+    }
+
+    .sidebar {
+        top: 22px;
+        left: 10px;
+        width: 75px;
+        font-size: 14px;
+    }
+
+    .details,
+    .introduction {
+        min-width: 0;
+        flex-basis: 100%;
+    }
+}
