@@ -1,0 +1,32 @@
+{% extends 'mini_insta/base.html' %}
+<!--
+File: mini_insta/templates/mini_insta/show_profile.html
+Name: Sung Tae Hwang
+BU Email: sthwang@bu.edu
+Description: Display the image and all profile information for one user.
+-->
+
+{% block content %}
+<h2>{{ profile.display_name }}</h2>
+{% if profile.profile_image_url %}
+<img class="profile-image" src="{{ profile.profile_image_url }}" alt="{{ profile.display_name }}">
+{% endif %}
+<table>
+    <tr>
+        <th>Username</th>
+        <td>@{{ profile.username }}</td>
+    </tr>
+    <tr>
+        <th>Display Name</th>
+        <td>{{ profile.display_name }}</td>
+    </tr>
+    <tr>
+        <th>Bio</th>
+        <td class="bio-text">{{ profile.bio_text }}</td>
+    </tr>
+    <tr>
+        <th>Join Date</th>
+        <td>{{ profile.join_date }}</td>
+    </tr>
+</table>
+{% endblock %}

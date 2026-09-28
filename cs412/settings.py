@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-h&ml&!&@1w!ry37p8!^uwn95z^t-@ij)sf-i@zsq*ubbg8fnow
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['cs-webapps.bu.edu']
+ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'quotes', #A1
     'formdata', #Module 2
     'restaurant', #A2
+    'blog', #module3
+    'mini_insta', #A3
 ]
 
 MIDDLEWARE = [

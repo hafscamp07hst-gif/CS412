@@ -1,0 +1,31 @@
+{% extends 'mini_insta/base.html' %}
+<!--
+File: mini_insta/templates/mini_insta/show_all_profiles.html
+Name: Sung Tae Hwang
+BU Email: sthwang@bu.edu
+Description: Display all profiles in a single vertical feed.
+-->
+
+{% block content %}
+<div class="profile-feed">
+    <h2>All Profiles</h2>
+
+    {% for profile in profiles %}
+    <div class="profile-card">
+        <h3>
+            <a href="{% url 'show_profile' profile.pk %}">{{ profile.display_name }}</a>
+        </h3>
+        <p class="feed-username">@{{ profile.username }}</p>
+
+        {% if profile.profile_image_url %}
+        <a href="{% url 'show_profile' profile.pk %}">
+            <img class="feed-image" src="{{ profile.profile_image_url }}" alt="{{ profile.display_name }}">
+        </a>
+        {% endif %}
+
+        <p class="bio-text">{{ profile.bio_text }}</p>
+        <a href="{% url 'show_profile' profile.pk %}">View Profile</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!-- templates/base.html -->
+<!-- blog/templates/blog/base.html -->
+{% load static %}
+<html>
+    <head>
+        <title>Blog</title>
+        <link rel="stylesheet" href="{% static 'Module3/styles-blog.css' %}">
+    </head>
+    <body>
+        <header>
+            <h1>Blog</h1>
+            <nav>
+                <ul>
+                    <li>
+                        <a href = "{% url 'random' %}">Random</a>
+                    </li>
+                    <li>
+                        <a href = "{% url 'show_all' %}">Show All</a>
+
+                    </li>
+                </ul>
+            </nav>
+        </header>
+    
+    {% block content %}
+    {% endblock %}    
+  
+    </body>
+</html>

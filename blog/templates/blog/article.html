@@ -1,0 +1,26 @@
+<!-- blog/templates/blog/article.html -->
+{% extends 'blog/base.html' %}
+<h1>{{article.title}}</h1>
+ 
+ 
+{% block content %}
+<main class="grid-container">
+    
+    <article class="featured">
+        {% if article.image_url %}
+		<img src="{{article.image_url}}" alt="{{article.image_url}}">
+		{% endif %}
+        
+        <div>
+        <h2>{{article.title}}</h2>
+        <strong>by {{article.author}} at {{article.published}}</strong>
+        <p>
+        {{article.text}}
+        </p>
+        </div>
+    </article>
+ 
+ 
+</main>
+{% endblock %}
+ 

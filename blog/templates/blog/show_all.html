@@ -1,0 +1,27 @@
+{% extends 'blog/base.html' %}
+<h1>Showing all Articles</h1>
+<!-- scriptlet code to display the value of the variable `articles` 
+{{ articles }}
+-->
+{% block content %}
+<main class="grid-container">
+    {% for a in articles %}
+    <article>       
+        <div>
+        <h2>{{a.title}}</h2>
+        <strong>by {{a.author}} at {{a.published}}</strong>
+        <p>
+        {{a.text}}
+        </p>
+        </div>
+        {% if a.image_url %}
+        <a href = "{% url 'article' a.pk %}">
+		<img src="{{a.image_url}}" alt="{{a.image_url}}">
+        </a>
+        {% endif %}
+    </article>
+ 
+ 
+    {% endfor %}
+</main>
+{% endblock %}
