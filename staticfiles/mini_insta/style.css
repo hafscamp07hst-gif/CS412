@@ -1,0 +1,112 @@
+/*
+File: static/mini_insta/style.css
+Name: Sung Tae Hwang
+BU Email: sthwang@bu.edu
+Description: Add basic colors, spacing, and image sizes to Mini Insta.
+*/
+
+body {
+    max-width: 850px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: ivory;
+    color: darkslategray;
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+}
+
+header {
+    padding: 15px;
+    background-color: honeydew;
+    text-align: center;
+}
+
+h1 {
+    font-size: 32px;
+}
+
+h2 {
+    color: darkolivegreen;
+    font-size: 24px;
+}
+
+a {
+    color: darkolivegreen;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th,
+td {
+    padding: 12px;
+    border-bottom: 1px solid gray;
+    text-align: left;
+}
+
+.profile-image {
+    width: 360px;
+    max-width: 100%;
+    height: auto;
+}
+
+footer {
+    margin-top: 30px;
+    padding: 15px;
+    border-top: 1px solid gray;
+    text-align: center;
+}
+
+/* Preserve the line breaks entered in each profile biography. */
+.bio-text {
+    white-space: pre-line;
+}
+
+/* Stack the profiles vertically so visitors can scroll through the feed. */
+.profile-feed {
+    max-width: 360px;
+    margin: 24px auto;
+}
+
+.profile-card {
+    margin-bottom: 28px;
+    padding: 18px;
+    background-color: white;
+    border: 1px solid #dddddd;
+}
+
+.profile-card h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.feed-username {
+    margin: 4px 0 16px;
+    color: #666666;
+}
+
+.feed-image {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+}
+
+.profile-card .bio-text {
+    margin: 18px 0;
+}
+
+/* Use the existing home button image to return to the profile feed. */
+.home-link {
+    display: inline-block;
+}
+
+.home-button {
+    display: block;
+    width: 40px;
+    height: auto;
+    margin: 0 auto 6px;
+}
