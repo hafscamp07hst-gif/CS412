@@ -33,6 +33,13 @@
     <tr>
         <th>Posts</th>
         <td>
+            <div>
+                <h3>
+                    <a href="{% url 'mini_insta:create_post' profile.pk %}">
+                        Create a new POST!
+                    </a>
+                </h3>
+            </div>
             <div class="posts-container">
                 {# Link each post preview to its detail page. #}
                 {% for post in profile.get_all_posts %}

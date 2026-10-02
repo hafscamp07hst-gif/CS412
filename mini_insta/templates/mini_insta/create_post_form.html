@@ -1,0 +1,26 @@
+{# File: mini_insta/templates/mini_insta/create_post_form.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/2/2026 #}
+{# Description: Collect a caption and image URL for a new post. #}
+
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<h1>Create a new post for {{ profile.username }}</h1>
+
+<form method="POST"
+      action="{% url 'mini_insta:create_post' profile.pk %}">
+    {% csrf_token %}
+    <table>
+        {{ form.as_table }}
+        <tr>
+            <th><label for="image_url">Image URL:</label></th>
+            <td>
+                <input type="url" id="image_url" name="image_url"
+                       maxlength="200">
+            </td>
+        </tr>
+    </table>
+    <a href="{% url 'mini_insta:show_profile' profile.pk %}">Return</a>
+    <input type="submit" name="submit" value="POST!">
+</form>
+{% endblock %}

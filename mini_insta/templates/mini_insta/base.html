@@ -32,6 +32,14 @@
                      alt="">
                 Back to All Profiles
             </a>
+            {# A profile is needed to create a post for that user. #}
+            {% if profile %}
+            <p>
+                <a href="{% url 'mini_insta:create_post' profile.pk %}">
+                    Create a new post
+                </a>
+            </p>
+            {% endif %}
             <p>CS412 | Sung Tae Hwang | sthwang@bu.edu</p>
         </footer>
     </body>
