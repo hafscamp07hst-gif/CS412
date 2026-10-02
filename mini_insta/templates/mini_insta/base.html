@@ -1,10 +1,8 @@
+{# File: mini_insta/templates/mini_insta/base.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026 #}
+{# Description: Share the layout, stylesheet, and navigation. #}
+
 {% load static %}
-<!--
-File: mini_insta/templates/mini_insta/base.html
-Name: Sung Tae Hwang
-BU Email: sthwang@bu.edu
-Description: Share the page structure, stylesheet, and navigation.
--->
 <!DOCTYPE html>
 <html>
     <head>
@@ -15,7 +13,9 @@ Description: Share the page structure, stylesheet, and navigation.
         <header>
             <h1>Mini Insta</h1>
             <nav>
-                <a href="{% url 'show_all_profiles' %}">All Profiles</a>
+                <a href="{% url 'mini_insta:show_all_profiles' %}">
+                    All Profiles
+                </a>
             </nav>
         </header>
 
@@ -25,8 +25,11 @@ Description: Share the page structure, stylesheet, and navigation.
         </main>
 
         <footer>
-            <a class="home-link" href="{% url 'show_all_profiles' %}">
-                <img class="home-button" src="{% static 'mini_insta/images/home_button.png' %}" alt="">
+            <a class="home-link"
+               href="{% url 'mini_insta:show_all_profiles' %}">
+                <img class="home-button"
+                     src="{% static 'mini_insta/images/home_button.png' %}"
+                     alt="">
                 Back to All Profiles
             </a>
             <p>CS412 | Sung Tae Hwang | sthwang@bu.edu</p>

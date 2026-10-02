@@ -1,9 +1,12 @@
 # File: mini_insta/admin.py
-# Name: Sung Tae Hwang
-# BU Email: sthwang@bu.edu
-# Description: Make profiles available in the Django admin application.
+# Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
+# Description: Register profiles, posts, and photos in the admin.
 
 from django.contrib import admin
-from .models import Profile
+from .models import Photo, Post, Profile
 
+
+# Allow sample data to be created and edited through the admin site.
 admin.site.register(Profile)
+admin.site.register(Post)
+admin.site.register(Photo)

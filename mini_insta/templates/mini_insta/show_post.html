@@ -1,0 +1,24 @@
+{# File: mini_insta/templates/mini_insta/show_post.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/1/2026 #}
+{# Description: Display a post caption, timestamp, and photos. #}
+
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<h2>
+    Post by {{ post.profile.display_name }}<br>
+    at {{ post.timestamp }}
+</h2>
+<p>{{ post.caption }}</p>
+
+<div>
+    {# Show every photo, or a placeholder if the post has none. #}
+    {% for photo in post.get_all_photos %}
+    <div>
+        <img src="{{ photo.image_url }}" alt="Photo for post {{ post.pk }}">
+    </div>
+    {% empty %}
+    <img src="https://placehold.co/300x300?text=No+Image" alt="No image">
+    {% endfor %}
+</div>
+{% endblock %}

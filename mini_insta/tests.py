@@ -1,8 +1,3 @@
 # File: mini_insta/tests.py
-# Name: Sung Tae Hwang
-# BU Email: sthwang@bu.edu
+# Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
 # Description: Reserve a module for Mini Insta tests.
-
-from django.test import TestCase
-
-# Create your tests here.

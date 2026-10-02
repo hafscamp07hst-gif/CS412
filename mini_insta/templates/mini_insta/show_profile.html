@@ -1,16 +1,18 @@
+{# File: mini_insta/templates/mini_insta/show_profile.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026 #}
+{# Description: Display one profile and its posts. #}
+
 {% extends 'mini_insta/base.html' %}
-<!--
-File: mini_insta/templates/mini_insta/show_profile.html
-Name: Sung Tae Hwang
-BU Email: sthwang@bu.edu
-Description: Display the image and all profile information for one user.
--->
 
 {% block content %}
 <h2>{{ profile.display_name }}</h2>
+
+{# Show the profile image only when its URL is available. #}
 {% if profile.profile_image_url %}
-<img class="profile-image" src="{{ profile.profile_image_url }}" alt="{{ profile.display_name }}">
+<img class="profile-image" src="{{ profile.profile_image_url }}"
+     alt="{{ profile.display_name }}">
 {% endif %}
+
 <table>
     <tr>
         <th>Username</th>
@@ -27,6 +29,34 @@ Description: Display the image and all profile information for one user.
     <tr>
         <th>Join Date</th>
         <td>{{ profile.join_date }}</td>
+    </tr>
+    <tr>
+        <th>Posts</th>
+        <td>
+            <div class="posts-container">
+                {# Link each post preview to its detail page. #}
+                {% for post in profile.get_all_posts %}
+                <div class="post-card">
+                    {% with first_photo=post.get_all_photos.first %}
+                    <a href="{% url 'mini_insta:show_post' post.pk %}">
+                        {# Use a placeholder when the post has no photos. #}
+                        {% if first_photo %}
+                        <img src="{{ first_photo.image_url }}"
+                             alt="Post by {{ profile.display_name }}">
+                        {% else %}
+                        <img
+                            src="https://placehold.co/300x300?text=No+Image"
+                            alt="No image">
+                        {% endif %}
+                    </a>
+                    {% endwith %}
+                    <small>{{ post.timestamp }}</small>
+                </div>
+                {% empty %}
+                <p>No posts yet.</p>
+                {% endfor %}
+            </div>
+        </td>
     </tr>
 </table>
 {% endblock %}
