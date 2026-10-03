@@ -39,8 +39,8 @@ class Post(models.Model):
     caption = models.TextField(blank=True)
 
     def __str__(self):
-        """Return the string representation of this post's profile."""
-        return f'{self.profile}'
+        """Return the profile and caption of this post."""
+        return f'{self.profile}: {self.caption}'
 
     def get_all_photos(self):
         """Return a QuerySet of photos for this post, oldest first."""
@@ -50,13 +50,29 @@ class Post(models.Model):
 
 
 class Photo(models.Model):
-    """Store a photo URL associated with one post."""
+    """Store a photo URL or uploaded image associated with one post."""
 
-    # Link the image to its post and store its public URL and save time.
+    # Keep image_url for photos created before file uploads were added.
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     image_url = models.URLField(blank=True)
+    image_file = models.ImageField(upload_to='mini_insta/', blank=True)
     timestamp = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        """Return the string representation of this photo's post."""
-        return f'{self.post}'
+        """Return this photo's post and image URL."""
+        image_url = self.get_image_url()
+        if image_url == '':
+            image_url = 'No image'
+        return f'Post {self.post.pk}: {image_url}'
+
+    def get_image_url(self):
+        """Return the stored URL or uploaded file URL for this photo."""
+        # Prefer the existing URL when this photo uses a web image.
+        if self.image_url:
+            return self.image_url
+
+        # Uploaded photos use the URL provided by Django's file storage.
+        if self.image_file:
+            return self.image_file.url
+
+        return ''

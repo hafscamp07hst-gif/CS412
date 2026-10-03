@@ -36,7 +36,7 @@ class PostDetailView(DetailView):
 
 
 class CreatePostView(CreateView):
-    """Create a post and its photo for the profile in the URL."""
+    """Create a post and its uploaded photos for the profile in the URL."""
 
     # Use the caption form with the post creation template.
     form_class = CreatePostForm
@@ -53,7 +53,7 @@ class CreatePostView(CreateView):
         return context
 
     def form_valid(self, form):
-        """Save form's Post and create its Photo from the submitted URL."""
+        """Save form's Post and create a Photo for each uploaded file."""
         # Attach the profile before saving the Post from form.
         pk = self.kwargs['pk']
         profile = Profile.objects.get(pk=pk)
@@ -61,14 +61,19 @@ class CreatePostView(CreateView):
 
         # Save the Post and prepare the redirect to its detail page.
         response = super().form_valid(form)
-        image_url = self.request.POST.get('image_url', '').strip()
 
-        # Create a Photo when an image URL was submitted.
-        if image_url:
-            Photo.objects.create(
-                post=self.object,
-                image_url=image_url,
-            )
+        # The previous URL-based creation is replaced by file uploads.
+        # image_url = self.request.POST.get('image_url', '').strip()
+        # if image_url:
+        #     Photo.objects.create(post=self.object, image_url=image_url)
+
+        # Read all files submitted through the form's files input.
+        files = self.request.FILES.getlist('files')
+
+        # Create a separate Photo for each uploaded image.
+        for image_file in files:
+            photo = Photo(post=self.object, image_file=image_file)
+            photo.save()
 
         return response
 

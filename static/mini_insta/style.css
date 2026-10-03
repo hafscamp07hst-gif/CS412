@@ -45,6 +45,7 @@ td {
     padding: 12px;
     border-bottom: 1px solid gray;
     text-align: left;
+    vertical-align: top;
 }
 
 .profile-image {
@@ -109,4 +110,47 @@ footer {
     width: 40px;
     height: auto;
     margin: 0 auto 6px;
+}
+
+/* Keep large photos within the content area. */
+main img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Limit each preview to a small photo without stretching it. */
+.post-card img {
+    display: block;
+    margin-bottom: 8px;
+    width: 180px;
+    max-width: 100%;
+    height: auto;
+}
+
+.post-card {
+    margin-bottom: 20px;
+    padding: 12px;
+    background-color: white;
+    border: 1px solid #dddddd;
+}
+
+/* Keep the post previews together below the profile information. */
+.posts-container {
+    max-width: 340px;
+}
+
+/* Display post photos vertically at a readable size. */
+.post-photo {
+    display: block;
+    width: 480px;
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+/* Give the caption input enough room for a short post. */
+textarea {
+    width: 95%;
+    height: 100px;
+    font-family: Arial, sans-serif;
 }

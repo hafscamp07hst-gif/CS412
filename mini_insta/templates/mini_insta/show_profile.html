@@ -36,7 +36,7 @@
             <div>
                 <h3>
                     <a href="{% url 'mini_insta:create_post' profile.pk %}">
-                        Create a new POST!
+                        Create a new post
                     </a>
                 </h3>
             </div>
@@ -48,7 +48,7 @@
                     <a href="{% url 'mini_insta:show_post' post.pk %}">
                         {# Use a placeholder when the post has no photos. #}
                         {% if first_photo %}
-                        <img src="{{ first_photo.image_url }}"
+                        <img src="{{ first_photo.get_image_url }}"
                              alt="Post by {{ profile.display_name }}">
                         {% else %}
                         <img
