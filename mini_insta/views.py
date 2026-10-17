@@ -1,10 +1,10 @@
 # File: mini_insta/views.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
-# Description: Display profiles and posts, and create new posts.
+# Description: Display and update profiles, and display and create posts.
 
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView, ListView
-from .forms import CreatePostForm
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from .forms import CreatePostForm, UpdateProfileForm
 from .models import Photo, Post, Profile
 
 
@@ -23,6 +23,16 @@ class ProfileDetailView(DetailView):
     # Make the selected Profile available as profile in the template.
     model = Profile
     template_name = 'mini_insta/show_profile.html'
+    context_object_name = 'profile'
+
+
+class UpdateProfileView(UpdateView):
+    """Display and process updates to the profile selected by the URL."""
+
+    # Load the existing profile and use the form's editable fields.
+    model = Profile
+    form_class = UpdateProfileForm
+    template_name = 'mini_insta/update_profile_form.html'
     context_object_name = 'profile'
 
 

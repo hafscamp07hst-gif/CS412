@@ -3,6 +3,7 @@
 # Description: Store profiles, posts, and their photos.
 
 from django.db import models
+from django.urls import reverse
 
 
 class Profile(models.Model):
@@ -20,6 +21,11 @@ class Profile(models.Model):
     def __str__(self):
         """Return the username and display name of this profile."""
         return f'{self.username} ({self.display_name})'
+
+    def get_absolute_url(self):
+        """Return the detail URL for this profile after an update."""
+        # Use this profile's primary key to return to its detail page.
+        return reverse('mini_insta:show_profile', kwargs={'pk': self.pk})
 
     def get_all_posts(self):
         """Return a QuerySet of posts for this profile, newest first."""
