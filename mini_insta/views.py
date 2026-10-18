@@ -50,6 +50,17 @@ class PostDetailView(DetailView):
     template_name = 'mini_insta/show_post.html'
     context_object_name = 'post'
 
+    def get_context_data(self, **kwargs):
+        """Return the post and its author for the shared navigation.
+
+        kwargs contains extra context values supplied by the generic view.
+        """
+        context = super().get_context_data(**kwargs)
+
+        # Use the author's profile for the feed and profile navigation links.
+        context['profile'] = self.object.profile
+        return context
+
 
 class CreatePostView(CreateView):
     """Create a post and its uploaded photos for the profile in the URL."""
@@ -166,4 +177,13 @@ class ShowFollowingDetailView(DetailView):
     # Provide the selected profile so the template can retrieve its subscriptions.
     model = Profile
     template_name = 'mini_insta/show_following.html'
+    context_object_name = 'profile'
+
+
+class ShowFeedView(DetailView):
+    """Display the post feed for the profile selected by the URL."""
+
+    # The template uses this profile to retrieve posts by followed profiles.
+    model = Profile
+    template_name = 'mini_insta/show_feed.html'
     context_object_name = 'profile'

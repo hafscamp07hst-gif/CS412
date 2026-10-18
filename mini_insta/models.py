@@ -60,6 +60,13 @@ class Profile(models.Model):
         """Return the number of profiles this profile follows."""
         return len(self.get_following())
 
+    def get_post_feed(self):
+        """Return posts by followed profiles, with the newest posts first."""
+        # Use the existing subscriptions to select posts for this profile.
+        following = self.get_following()
+        posts = Post.objects.filter(profile__in=following).order_by('-timestamp')
+        return posts
+
 
 class Post(models.Model):
     """Store a post associated with one profile."""

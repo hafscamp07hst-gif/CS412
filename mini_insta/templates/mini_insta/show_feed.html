@@ -1,0 +1,73 @@
+{# File: mini_insta/templates/mini_insta/show_feed.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/17/2026 #}
+{# Description: Display posts from the profiles this profile follows. #}
+
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="profile-feed">
+    <h2>Post Feed for {{ profile.display_name }}</h2>
+
+    {# The accessor returns followed profiles' posts in newest-first order. #}
+    {% for post in profile.get_post_feed %}
+    <div class="profile-card">
+        {# Show the author and link back to the author's profile. #}
+        {% if post.profile.profile_image_url %}
+        <a href="{% url 'mini_insta:show_profile' post.profile.pk %}">
+            <img src="{{ post.profile.profile_image_url }}" width="48"
+                 alt="{{ post.profile.display_name }}">
+        </a>
+        {% endif %}
+        <h3>
+            <a href="{% url 'mini_insta:show_profile' post.profile.pk %}">
+                {{ post.profile.display_name }}
+            </a>
+        </h3>
+        <p><small>{{ post.timestamp }}</small></p>
+
+        {# Display only the first photo, as on the existing profile page. #}
+        {% with first_photo=post.get_all_photos.first %}
+        <a href="{% url 'mini_insta:show_post' post.pk %}">
+            {% if first_photo %}
+            <img class="feed-image" src="{{ first_photo.get_image_url }}"
+                 alt="Post by {{ post.profile.display_name }}">
+            {% else %}
+            <img class="feed-image"
+                 src="https://placehold.co/300x300?text=No+Image"
+                 alt="No image">
+            {% endif %}
+        </a>
+        {% endwith %}
+
+        <p>{{ post.get_likes.count }} Likes</p>
+        <p class="bio-text">{{ post.caption }}</p>
+
+        {# Display each comment associated with this post. #}
+        <h3>Comments</h3>
+        {% for comment in post.get_all_comments %}
+        <div>
+            <p>
+                <a href="{% url 'mini_insta:show_profile' comment.profile.pk %}">
+                    {{ comment.profile.display_name }}
+                </a>
+                <small>{{ comment.timestamp }}</small>
+            </p>
+            <p class="bio-text">{{ comment.text }}</p>
+        </div>
+        {% empty %}
+        <p>No comments yet.</p>
+        {% endfor %}
+
+        <a href="{% url 'mini_insta:show_post' post.pk %}">View Post</a>
+    </div>
+    {% empty %}
+    <p>No posts to show yet.</p>
+    {% endfor %}
+</div>
+
+<p>
+    <a href="{% url 'mini_insta:show_profile' profile.pk %}">
+        Return to Profile
+    </a>
+</p>
+{% endblock %}

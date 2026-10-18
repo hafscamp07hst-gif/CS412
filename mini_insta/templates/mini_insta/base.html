@@ -25,6 +25,27 @@
         </main>
 
         <footer>
+            {# Use the selected profile for the feed and profile navigation. #}
+            {% if profile %}
+            <a class="home-link"
+               href="{% url 'mini_insta:show_feed' profile.pk %}">
+                <img class="home-button"
+                     src="{% static 'mini_insta/images/home_button.png' %}"
+                     alt="">
+                Post Feed
+            </a>
+            <p>
+                <a href="{% url 'mini_insta:show_profile' profile.pk %}">
+                    Profile
+                </a>
+            </p>
+            <p>
+                <a href="{% url 'mini_insta:create_post' profile.pk %}">
+                    Create a new post
+                </a>
+            </p>
+            {% else %}
+            {# The all-profiles page has no selected profile for a feed. #}
             <a class="home-link"
                href="{% url 'mini_insta:show_all_profiles' %}">
                 <img class="home-button"
@@ -32,13 +53,6 @@
                      alt="">
                 Back to All Profiles
             </a>
-            {# A profile is needed to create a post for that user. #}
-            {% if profile %}
-            <p>
-                <a href="{% url 'mini_insta:create_post' profile.pk %}">
-                    Create a new post
-                </a>
-            </p>
             {% endif %}
             <p>CS412 | Sung Tae Hwang | sthwang@bu.edu</p>
         </footer>
