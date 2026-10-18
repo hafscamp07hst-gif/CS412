@@ -71,7 +71,10 @@ class CreatePostView(CreateView):
     template_name = 'mini_insta/create_post_form.html'
 
     def get_context_data(self, **kwargs):
-        """Return context with the profile and values supplied in kwargs."""
+        """Return the profile and extra template context.
+
+        kwargs contains extra context values supplied by the generic view.
+        """
         context = super().get_context_data(**kwargs)
 
         # Find the profile identified by the URL's primary key.
@@ -81,7 +84,10 @@ class CreatePostView(CreateView):
         return context
 
     def form_valid(self, form):
-        """Save form's Post and create a Photo for each uploaded file."""
+        """Save the post and create a Photo for each uploaded file.
+
+        form is the validated CreatePostForm containing the new caption.
+        """
         # Attach the profile before saving the Post from form.
         pk = self.kwargs['pk']
         profile = Profile.objects.get(pk=pk)
@@ -200,6 +206,7 @@ class SearchView(ListView):
     def dispatch(self, request, *args, **kwargs):
         """Display the search form when request has no query parameter.
 
+        request is the incoming HTTP request.
         args and kwargs contain the URL arguments supplied to the view.
         """
         # Keep the profile from the URL available in both search templates.
