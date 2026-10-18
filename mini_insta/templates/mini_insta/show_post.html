@@ -1,12 +1,18 @@
 {# File: mini_insta/templates/mini_insta/show_post.html #}
 {# Author: Sung Tae Hwang (sthwang@bu.edu), 10/1/2026 #}
-{# Description: Display a post caption, timestamp, and photos. #}
+{# Description: Display a post and links to update or delete it. #}
 
 {% extends 'mini_insta/base.html' %}
 
 {% block content %}
 <h2>Post by {{ post.profile.display_name }}</h2>
 <p>{{ post.timestamp }}</p>
+
+{# Open the update or delete confirmation form for this post. #}
+<p>
+    <a href="{% url 'mini_insta:update_post' post.pk %}">Update Post</a>
+    <a href="{% url 'mini_insta:delete_post' post.pk %}">Delete Post</a>
+</p>
 <p class="bio-text">{{ post.caption }}</p>
 
 <div>

@@ -26,3 +26,14 @@ class UpdateProfileForm(forms.ModelForm):
         # Keep the username and join date unchanged when editing a profile.
         model = Profile
         fields = ['display_name', 'bio_text', 'profile_image_url']
+
+
+class UpdatePostForm(forms.ModelForm):
+    """Collect changes to an existing Post's caption."""
+
+    class Meta:
+        """Associate the form with Post and expose only its caption."""
+
+        # Keep the post's profile and photos unchanged when editing.
+        model = Post
+        fields = ['caption']

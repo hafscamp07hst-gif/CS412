@@ -1,10 +1,16 @@
 # File: mini_insta/views.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
-# Description: Display and update profiles, and display and create posts.
+# Description: Display and update profiles, and create, update, and delete posts.
 
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
-from .forms import CreatePostForm, UpdateProfileForm
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
+from .forms import CreatePostForm, UpdatePostForm, UpdateProfileForm
 from .models import Photo, Post, Profile
 
 
@@ -89,4 +95,57 @@ class CreatePostView(CreateView):
 
     def get_success_url(self):
         """Return the detail URL of the newly saved Post."""
+        return reverse('mini_insta:show_post', kwargs={'pk': self.object.pk})
+
+
+class DeletePostView(DeleteView):
+    """Display a confirmation form and delete the selected post."""
+
+    # Select the post using the primary key supplied in the URL.
+    model = Post
+    template_name = 'mini_insta/delete_post_form.html'
+    context_object_name = 'post'
+
+    def get_context_data(self, **kwargs):
+        """Return the post and its profile for the confirmation template.
+
+        kwargs contains extra context values supplied by the generic view.
+        """
+        context = super().get_context_data(**kwargs)
+
+        # Include the post and its author for display and the cancel link.
+        context['post'] = self.object
+        context['profile'] = self.object.profile
+        return context
+
+    def get_success_url(self):
+        """Return the author's profile URL after the post is deleted."""
+        # Return to the profile because the deleted post no longer has a page.
+        return reverse('mini_insta:show_profile',
+                       kwargs={'pk': self.object.profile.pk})
+
+
+class UpdatePostView(UpdateView):
+    """Display and process changes to the selected post's caption."""
+
+    # Use the existing Post and limit changes to the caption form field.
+    model = Post
+    form_class = UpdatePostForm
+    template_name = 'mini_insta/update_post_form.html'
+    context_object_name = 'post'
+
+    def get_context_data(self, **kwargs):
+        """Return the post and its profile for the update template.
+
+        kwargs contains extra context values supplied by the generic view.
+        """
+        context = super().get_context_data(**kwargs)
+
+        # Provide the author for the cancel form and shared navigation.
+        context['profile'] = self.object.profile
+        return context
+
+    def get_success_url(self):
+        """Return the detail URL of the updated post."""
+        # Display the saved caption on the same post's detail page.
         return reverse('mini_insta:show_post', kwargs={'pk': self.object.pk})

@@ -1,0 +1,40 @@
+{# File: mini_insta/templates/mini_insta/delete_post_form.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/17/2026 #}
+{# Description: Confirm or cancel deletion of a post. #}
+
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<h2>Delete Post by {{ profile.display_name }}</h2>
+<p>Are you sure you want to delete this post?</p>
+<p>{{ post.timestamp }}</p>
+<p class="bio-text">{{ post.caption }}</p>
+
+<div>
+    {# Show the post's photos so the user can identify what will be deleted. #}
+    {% for photo in post.get_all_photos %}
+    <div>
+        <img class="post-photo" src="{{ photo.get_image_url }}"
+             alt="Photo for post {{ post.pk }}">
+    </div>
+    {% empty %}
+    <img class="post-photo"
+         src="https://placehold.co/300x300?text=No+Image" alt="No image">
+    {% endfor %}
+</div>
+
+{# Delete only when the user submits this confirmation form. #}
+<form method="POST"
+      action="{% url 'mini_insta:delete_post' post.pk %}">
+    {% csrf_token %}
+    <p>
+        <input type="submit" name="submit" value="Delete">
+    </p>
+</form>
+
+{# A GET request returns to the author's profile without deleting the post. #}
+<form method="GET"
+      action="{% url 'mini_insta:show_profile' profile.pk %}">
+    <input type="submit" value="Cancel">
+</form>
+{% endblock %}
