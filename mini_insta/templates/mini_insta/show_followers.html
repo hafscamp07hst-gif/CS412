@@ -1,0 +1,42 @@
+{# File: mini_insta/templates/mini_insta/show_followers.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/17/2026 #}
+{# Description: Display this profile's followers using profile cards. #}
+
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="profile-feed">
+    <h2>Followers of {{ profile.display_name }}</h2>
+
+    {# Display the Profile objects returned by the accessor method. #}
+    {% for follower in profile.get_followers %}
+    <div class="profile-card">
+        <h3>
+            <a href="{% url 'mini_insta:show_profile' follower.pk %}">
+                {{ follower.display_name }}
+            </a>
+        </h3>
+        <p class="feed-username">@{{ follower.username }}</p>
+
+        {# Show an image only when this profile has an image URL. #}
+        {% if follower.profile_image_url %}
+        <a href="{% url 'mini_insta:show_profile' follower.pk %}">
+            <img class="feed-image" src="{{ follower.profile_image_url }}"
+                 alt="{{ follower.display_name }}">
+        </a>
+        {% endif %}
+
+        <p class="bio-text">{{ follower.bio_text }}</p>
+        <a href="{% url 'mini_insta:show_profile' follower.pk %}">
+            View Profile
+        </a>
+    </div>
+    {% empty %}
+    <p>No followers yet.</p>
+    {% endfor %}
+</div>
+
+<p>
+    <a href="{% url 'mini_insta:show_profile' profile.pk %}">Return</a>
+</p>
+{% endblock %}

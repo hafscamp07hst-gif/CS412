@@ -1,6 +1,6 @@
 {# File: mini_insta/templates/mini_insta/show_post.html #}
 {# Author: Sung Tae Hwang (sthwang@bu.edu), 10/1/2026 #}
-{# Description: Display a post and links to update or delete it. #}
+{# Description: Display a post, likes, comments, and update/delete links. #}
 
 {% extends 'mini_insta/base.html' %}
 
@@ -13,7 +13,25 @@
     <a href="{% url 'mini_insta:update_post' post.pk %}">Update Post</a>
     <a href="{% url 'mini_insta:delete_post' post.pk %}">Delete Post</a>
 </p>
+{# Show the number of likes above the caption. #}
+<p>{{ post.get_likes.count }} Likes</p>
 <p class="bio-text">{{ post.caption }}</p>
+
+{# Display comments for this post below its caption. #}
+<h3>Comments</h3>
+{% for comment in post.get_all_comments %}
+<div>
+    <p>
+        <a href="{% url 'mini_insta:show_profile' comment.profile.pk %}">
+            {{ comment.profile.display_name }}
+        </a>
+        <small>{{ comment.timestamp }}</small>
+    </p>
+    <p class="bio-text">{{ comment.text }}</p>
+</div>
+{% empty %}
+<p>No comments yet.</p>
+{% endfor %}
 
 <div>
     {# Show every photo, or a placeholder if the post has none. #}

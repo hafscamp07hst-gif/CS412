@@ -1,0 +1,42 @@
+{# File: mini_insta/templates/mini_insta/show_following.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/17/2026 #}
+{# Description: Display this profile's following using profile cards. #}
+
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<div class="profile-feed">
+    <h2>Profiles followed by {{ profile.display_name }}</h2>
+
+    {# Display the Profile objects returned by the accessor method. #}
+    {% for followed_profile in profile.get_following %}
+    <div class="profile-card">
+        <h3>
+            <a href="{% url 'mini_insta:show_profile' followed_profile.pk %}">
+                {{ followed_profile.display_name }}
+            </a>
+        </h3>
+        <p class="feed-username">@{{ followed_profile.username }}</p>
+
+        {# Show an image only when this profile has an image URL. #}
+        {% if followed_profile.profile_image_url %}
+        <a href="{% url 'mini_insta:show_profile' followed_profile.pk %}">
+            <img class="feed-image" src="{{ followed_profile.profile_image_url }}"
+                 alt="{{ followed_profile.display_name }}">
+        </a>
+        {% endif %}
+
+        <p class="bio-text">{{ followed_profile.bio_text }}</p>
+        <a href="{% url 'mini_insta:show_profile' followed_profile.pk %}">
+            View Profile
+        </a>
+    </div>
+    {% empty %}
+    <p>Not following anyone yet.</p>
+    {% endfor %}
+</div>
+
+<p>
+    <a href="{% url 'mini_insta:show_profile' profile.pk %}">Return</a>
+</p>
+{% endblock %}

@@ -1,6 +1,6 @@
 # File: mini_insta/views.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
-# Description: Display and update profiles, and create, update, and delete posts.
+# Description: Display profiles and connections, and create, update, and delete posts.
 
 from django.urls import reverse
 from django.views.generic import (
@@ -149,3 +149,21 @@ class UpdatePostView(UpdateView):
         """Return the detail URL of the updated post."""
         # Display the saved caption on the same post's detail page.
         return reverse('mini_insta:show_post', kwargs={'pk': self.object.pk})
+
+
+class ShowFollowersDetailView(DetailView):
+    """Display the profiles that follow the profile selected by the URL."""
+
+    # Provide the selected profile so the template can retrieve its followers.
+    model = Profile
+    template_name = 'mini_insta/show_followers.html'
+    context_object_name = 'profile'
+
+
+class ShowFollowingDetailView(DetailView):
+    """Display the profiles followed by the profile selected by the URL."""
+
+    # Provide the selected profile so the template can retrieve its subscriptions.
+    model = Profile
+    template_name = 'mini_insta/show_following.html'
+    context_object_name = 'profile'

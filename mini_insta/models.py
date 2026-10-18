@@ -1,6 +1,6 @@
 # File: mini_insta/models.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
-# Description: Store profiles, posts, and their photos.
+# Description: Store profiles, posts, photos, follows, comments, and likes.
 
 from django.db import models
 from django.urls import reverse
@@ -34,6 +34,33 @@ class Profile(models.Model):
         return posts
 
 
+    def get_followers(self):
+        """Return a list of Profiles that follow this profile."""
+        # Each matching Follow identifies a subscriber in follower_profile.
+        follows = Follow.objects.filter(profile=self)
+        followers = []
+        for follow in follows:
+            followers.append(follow.follower_profile)
+        return followers
+
+    def get_num_followers(self):
+        """Return the number of profiles following this profile."""
+        return len(self.get_followers())
+
+    def get_following(self):
+        """Return a list of Profiles that this profile follows."""
+        # Each matching Follow identifies a publisher in profile.
+        follows = Follow.objects.filter(follower_profile=self)
+        following = []
+        for follow in follows:
+            following.append(follow.profile)
+        return following
+
+    def get_num_following(self):
+        """Return the number of profiles this profile follows."""
+        return len(self.get_following())
+
+
 class Post(models.Model):
     """Store a post associated with one profile."""
 
@@ -53,6 +80,19 @@ class Post(models.Model):
         # Find this post's photos and sort them by timestamp.
         photos = Photo.objects.filter(post=self).order_by('timestamp')
         return photos
+
+
+    def get_all_comments(self):
+        """Return this post's comments in the order they were created."""
+        # Include only comments attached to this post.
+        comments = Comment.objects.filter(post=self).order_by('timestamp')
+        return comments
+
+    def get_likes(self):
+        """Return a QuerySet of likes associated with this post."""
+        # Keep likes for other posts out of this post's count.
+        likes = Like.objects.filter(post=self)
+        return likes
 
 
 class Photo(models.Model):
@@ -82,3 +122,45 @@ class Photo(models.Model):
             return self.image_file.url
 
         return ''
+
+
+class Follow(models.Model):
+    """Store one profile following another profile."""
+
+    # profile is the publisher; follower_profile is the subscriber.
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                related_name='profile')
+    follower_profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                         related_name='follower_profile')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        """Return the names of the follower and the profile being followed."""
+        return f'{self.follower_profile.display_name} follows {self.profile.display_name}'
+
+
+class Comment(models.Model):
+    """Store a profile's comment on a post."""
+
+    # Connect the comment to its post and to the profile that wrote it.
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    text = models.TextField(blank=False)
+
+    def __str__(self):
+        """Return the commenter, post number, and comment text."""
+        return f'{self.profile.display_name} on Post {self.post.pk}: {self.text}'
+
+
+class Like(models.Model):
+    """Store a profile's approval of a post."""
+
+    # Connect each like to the post and the profile that liked it.
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        """Return the name of the profile and the post it likes."""
+        return f'{self.profile.display_name} likes Post {self.post.pk}'

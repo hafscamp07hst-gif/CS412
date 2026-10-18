@@ -1,6 +1,6 @@
 {# File: mini_insta/templates/mini_insta/show_profile.html #}
 {# Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026 #}
-{# Description: Display one profile and its posts. #}
+{# Description: Display a profile, its connection counts, and its posts. #}
 
 {% extends 'mini_insta/base.html' %}
 
@@ -36,6 +36,23 @@
     <tr>
         <th>Join Date</th>
         <td>{{ profile.join_date }}</td>
+    </tr>
+    {# Link the connection counts to their corresponding profile lists. #}
+    <tr>
+        <th>Followers</th>
+        <td>
+            <a href="{% url 'mini_insta:show_followers' profile.pk %}">
+                {{ profile.get_num_followers }} Followers
+            </a>
+        </td>
+    </tr>
+    <tr>
+        <th>Following</th>
+        <td>
+            <a href="{% url 'mini_insta:show_following' profile.pk %}">
+                {{ profile.get_num_following }} Following
+            </a>
+        </td>
     </tr>
     <tr>
         <th>Posts</th>

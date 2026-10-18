@@ -9,6 +9,8 @@ from .views import (
     PostDetailView,
     ProfileDetailView,
     ProfileListView,
+    ShowFollowersDetailView,
+    ShowFollowingDetailView,
     UpdatePostView,
     UpdateProfileView,
 )
@@ -25,6 +27,16 @@ urlpatterns = [
         'profile/<int:pk>/update',
         UpdateProfileView.as_view(),
         name='update_profile',
+    ),
+    path(
+        'profile/<int:pk>/followers',
+        ShowFollowersDetailView.as_view(),
+        name='show_followers',
+    ),
+    path(
+        'profile/<int:pk>/following',
+        ShowFollowingDetailView.as_view(),
+        name='show_following',
     ),
     path('post/<int:pk>', PostDetailView.as_view(), name='show_post'),
     path('post/<int:pk>/update', UpdatePostView.as_view(), name='update_post'),
