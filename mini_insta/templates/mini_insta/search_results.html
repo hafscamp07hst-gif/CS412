@@ -1,0 +1,71 @@
+{# File: mini_insta/templates/mini_insta/search_results.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/18/2026 #}
+{# Description: Display matching profiles and posts in separate lists. #}
+
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<h2>Search Results for "{{ query }}"</h2>
+<p>@{{ profile.username }}</p>
+<p><a href="{% url 'mini_insta:search' profile.pk %}">Search again</a></p>
+
+<div class="profile-feed">
+    <h3>Profiles</h3>
+    {# Use a separate name so the selected profile stays available. #}
+    {% for result_profile in profiles %}
+    <div class="profile-card">
+        <h3>
+            <a href="{% url 'mini_insta:show_profile' result_profile.pk %}">
+                {{ result_profile.display_name }}
+            </a>
+        </h3>
+        <p class="feed-username">@{{ result_profile.username }}</p>
+        {% if result_profile.profile_image_url %}
+        <a href="{% url 'mini_insta:show_profile' result_profile.pk %}">
+            <img class="feed-image" src="{{ result_profile.profile_image_url }}"
+                 alt="{{ result_profile.display_name }}">
+        </a>
+        {% endif %}
+        <p class="bio-text">{{ result_profile.bio_text }}</p>
+        <a href="{% url 'mini_insta:show_profile' result_profile.pk %}">View Profile</a>
+    </div>
+    {% empty %}
+    <p>No matching profiles.</p>
+    {% endfor %}
+
+    <h3>Posts</h3>
+    {# Display matching posts using the existing feed card style. #}
+    {% for post in posts %}
+    <div class="profile-card">
+        {% if post.profile.profile_image_url %}
+        <a href="{% url 'mini_insta:show_profile' post.profile.pk %}">
+            <img src="{{ post.profile.profile_image_url }}" width="48"
+                 alt="{{ post.profile.display_name }}">
+        </a>
+        {% endif %}
+        <h3>
+            <a href="{% url 'mini_insta:show_profile' post.profile.pk %}">
+                {{ post.profile.display_name }}
+            </a>
+        </h3>
+        <p><small>{{ post.timestamp }}</small></p>
+        {% with first_photo=post.get_all_photos.first %}
+        <a href="{% url 'mini_insta:show_post' post.pk %}">
+            {% if first_photo %}
+            <img class="feed-image" src="{{ first_photo.get_image_url }}"
+                 alt="Post by {{ post.profile.display_name }}">
+            {% else %}
+            <img class="feed-image" src="https://placehold.co/300x300?text=No+Image"
+                 alt="No image">
+            {% endif %}
+        </a>
+        {% endwith %}
+        <p>{{ post.get_likes.count }} Likes</p>
+        <p class="bio-text">{{ post.caption }}</p>
+        <a href="{% url 'mini_insta:show_post' post.pk %}">View Post</a>
+    </div>
+    {% empty %}
+    <p>No matching posts.</p>
+    {% endfor %}
+</div>
+{% endblock %}

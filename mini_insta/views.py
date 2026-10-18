@@ -2,6 +2,7 @@
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
 # Description: Display profiles and connections, and create, update, and delete posts.
 
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.generic import (
     CreateView,
@@ -187,3 +188,47 @@ class ShowFeedView(DetailView):
     model = Profile
     template_name = 'mini_insta/show_feed.html'
     context_object_name = 'profile'
+
+
+class SearchView(ListView):
+    """Search profile information and post captions using a text query."""
+
+    # A query displays results; dispatch displays the form before a search.
+    template_name = 'mini_insta/search_results.html'
+    context_object_name = 'posts'
+
+    def dispatch(self, request, *args, **kwargs):
+        """Display the search form when request has no query parameter.
+
+        args and kwargs contain the URL arguments supplied to the view.
+        """
+        # Keep the profile from the URL available in both search templates.
+        self.profile = get_object_or_404(Profile, pk=self.kwargs['pk'])
+        if 'query' not in self.request.GET:
+            return render(request, 'mini_insta/search.html',
+                          {'profile': self.profile})
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        """Return posts whose captions contain the search text."""
+        query = self.request.GET.get('query', '')
+        return Post.objects.filter(caption__icontains=query).order_by('-timestamp')
+
+    def get_context_data(self, **kwargs):
+        """Add the selected profile, query, and matching profiles to context.
+
+        kwargs contains extra context values supplied by the generic view.
+        """
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get('query', '')
+
+        # Combine matches from any of the three profile text fields.
+        profiles = (Profile.objects.filter(username__icontains=query)
+                    | Profile.objects.filter(display_name__icontains=query)
+                    | Profile.objects.filter(bio_text__icontains=query))
+        context['profile'] = self.profile
+        context['query'] = query
+        context['profiles'] = profiles
+        # ListView already obtained these posts from get_queryset.
+        context['posts'] = self.object_list
+        return context
