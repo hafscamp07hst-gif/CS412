@@ -6,6 +6,7 @@ from django.urls import path
 from .views import (
     CreatePostView,
     DeletePostView,
+    OwnProfileDetailView,
     PostDetailView,
     ProfileDetailView,
     ProfileListView,
@@ -21,12 +22,13 @@ from .views import (
 # Keep these URL names separate from the other applications.
 app_name = 'mini_insta'
 
-# Use pk to select the profile or post for each view.
+# Public pages use pk; private profile actions use the signed-in account.
 urlpatterns = [
     path('', ProfileListView.as_view(), name='show_all_profiles'),
     path('profile/<int:pk>', ProfileDetailView.as_view(), name='show_profile'),
+    path('profile', OwnProfileDetailView.as_view(), name='show_own_profile'),
     path(
-        'profile/<int:pk>/update',
+        'profile/update',
         UpdateProfileView.as_view(),
         name='update_profile',
     ),
@@ -40,13 +42,13 @@ urlpatterns = [
         ShowFollowingDetailView.as_view(),
         name='show_following',
     ),
-    path('profile/<int:pk>/search', SearchView.as_view(), name='search'),
-    path('profile/<int:pk>/feed', ShowFeedView.as_view(), name='show_feed'),
+    path('profile/search', SearchView.as_view(), name='search'),
+    path('profile/feed', ShowFeedView.as_view(), name='show_feed'),
     path('post/<int:pk>', PostDetailView.as_view(), name='show_post'),
     path('post/<int:pk>/update', UpdatePostView.as_view(), name='update_post'),
     path('post/<int:pk>/delete', DeletePostView.as_view(), name='delete_post'),
     path(
-        'profile/<int:pk>/create_post',
+        'profile/create_post',
         CreatePostView.as_view(),
         name='create_post',
     ),

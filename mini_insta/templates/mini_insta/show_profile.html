@@ -7,12 +7,14 @@
 {% block content %}
 <h2>{{ profile.display_name }}</h2>
 
-{# Open the update form for the profile displayed on this page. #}
+{# Only the owner can edit this profile or create posts for it. #}
+{% if request.user.is_authenticated and request.user == profile.user %}
 <p>
-    <a href="{% url 'mini_insta:update_profile' profile.pk %}">
+    <a href="{% url 'mini_insta:update_profile' %}">
         Update Profile
     </a>
 </p>
+{% endif %}
 
 {# Show the profile image only when its URL is available. #}
 {% if profile.profile_image_url %}
@@ -57,13 +59,15 @@
     <tr>
         <th>Posts</th>
         <td>
+            {% if request.user.is_authenticated and request.user == profile.user %}
             <div>
                 <h3>
-                    <a href="{% url 'mini_insta:create_post' profile.pk %}">
+                    <a href="{% url 'mini_insta:create_post' %}">
                         Create a new post
                     </a>
                 </h3>
             </div>
+            {% endif %}
             <div class="posts-container">
                 {# Link each post preview to its detail page. #}
                 {% for post in profile.get_all_posts %}

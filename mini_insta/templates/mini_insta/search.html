@@ -9,7 +9,7 @@
 <p>@{{ profile.username }}</p>
 
 {# A GET form sends the query without creating or updating any data. #}
-<form action="{% url 'mini_insta:search' profile.pk %}" method="GET">
+<form action="{% url 'mini_insta:search' %}" method="GET">
     <p><label for="query">Search for profiles and posts:</label></p>
     <p><textarea id="query" name="query" rows="3" cols="30"></textarea></p>
     <input type="submit" value="Search">

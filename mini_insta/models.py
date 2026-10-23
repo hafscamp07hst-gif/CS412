@@ -2,12 +2,16 @@
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
 # Description: Store profiles, posts, photos, follows, comments, and likes.
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 
 
 class Profile(models.Model):
     """Store a user's profile information and join date."""
+
+    # Identify the account that can edit this profile and its posts.
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Store the name, photo URL, and biography shown on the profile page.
     username = models.TextField(blank=True)

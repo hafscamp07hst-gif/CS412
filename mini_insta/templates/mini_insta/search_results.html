@@ -7,7 +7,7 @@
 {% block content %}
 <h2>Search Results for "{{ query }}"</h2>
 <p>@{{ profile.username }}</p>
-<p><a href="{% url 'mini_insta:search' profile.pk %}">Search again</a></p>
+<p><a href="{% url 'mini_insta:search' %}">Search again</a></p>
 
 <div class="profile-feed">
     <h3>Profiles</h3>

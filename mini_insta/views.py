@@ -2,7 +2,9 @@
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
 # Description: Display profiles and connections, and create, update, and delete posts.
 
-from django.shortcuts import get_object_or_404, render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404
+from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import (
     CreateView,
@@ -13,6 +15,25 @@ from django.views.generic import (
 )
 from .forms import CreatePostForm, UpdatePostForm, UpdateProfileForm
 from .models import Photo, Post, Profile
+
+
+class ProfileLoginRequiredMixin(LoginRequiredMixin):
+    """Require authentication and locate the signed-in user's profile."""
+
+    def get_user_profile(self):
+        """Return the user's first profile, including migrated admin profiles."""
+        profile = Profile.objects.filter(user=self.request.user).order_by('pk').first()
+        if profile is None:
+            raise Http404('This account does not have a profile.')
+        return profile
+
+
+class OwnPostRequiredMixin(LoginRequiredMixin):
+    """Limit post changes to posts owned by the authenticated account."""
+
+    def get_queryset(self):
+        """Return only posts associated with the signed-in user's profiles."""
+        return super().get_queryset().filter(profile__user=self.request.user)
 
 
 class ProfileListView(ListView):
@@ -33,14 +54,26 @@ class ProfileDetailView(DetailView):
     context_object_name = 'profile'
 
 
-class UpdateProfileView(UpdateView):
-    """Display and process updates to the profile selected by the URL."""
+class OwnProfileDetailView(ProfileLoginRequiredMixin, ProfileDetailView):
+    """Display the signed-in user's own profile without a URL primary key."""
+
+    def get_object(self, queryset=None):
+        """Return the current profile; queryset is an unused optional lookup."""
+        return self.get_user_profile()
+
+
+class UpdateProfileView(ProfileLoginRequiredMixin, UpdateView):
+    """Display and process updates to the signed-in user's profile."""
 
     # Load the existing profile and use the form's editable fields.
     model = Profile
     form_class = UpdateProfileForm
     template_name = 'mini_insta/update_profile_form.html'
     context_object_name = 'profile'
+
+    def get_object(self, queryset=None):
+        """Return the current profile; queryset is an unused optional lookup."""
+        return self.get_user_profile()
 
 
 class PostDetailView(DetailView):
@@ -63,8 +96,8 @@ class PostDetailView(DetailView):
         return context
 
 
-class CreatePostView(CreateView):
-    """Create a post and its uploaded photos for the profile in the URL."""
+class CreatePostView(ProfileLoginRequiredMixin, CreateView):
+    """Create a post and uploaded photos for the signed-in user's profile."""
 
     # Use the caption form with the post creation template.
     form_class = CreatePostForm
@@ -77,10 +110,7 @@ class CreatePostView(CreateView):
         """
         context = super().get_context_data(**kwargs)
 
-        # Find the profile identified by the URL's primary key.
-        pk = self.kwargs['pk']
-        profile = Profile.objects.get(pk=pk)
-        context['profile'] = profile
+        context['profile'] = self.get_user_profile()
         return context
 
     def form_valid(self, form):
@@ -89,9 +119,7 @@ class CreatePostView(CreateView):
         form is the validated CreatePostForm containing the new caption.
         """
         # Attach the profile before saving the Post from form.
-        pk = self.kwargs['pk']
-        profile = Profile.objects.get(pk=pk)
-        form.instance.profile = profile
+        form.instance.profile = self.get_user_profile()
 
         # Save the Post and prepare the redirect to its detail page.
         response = super().form_valid(form)
@@ -116,7 +144,7 @@ class CreatePostView(CreateView):
         return reverse('mini_insta:show_post', kwargs={'pk': self.object.pk})
 
 
-class DeletePostView(DeleteView):
+class DeletePostView(OwnPostRequiredMixin, DeleteView):
     """Display a confirmation form and delete the selected post."""
 
     # Select the post using the primary key supplied in the URL.
@@ -143,7 +171,7 @@ class DeletePostView(DeleteView):
                        kwargs={'pk': self.object.profile.pk})
 
 
-class UpdatePostView(UpdateView):
+class UpdatePostView(OwnPostRequiredMixin, UpdateView):
     """Display and process changes to the selected post's caption."""
 
     # Use the existing Post and limit changes to the caption form field.
@@ -187,34 +215,38 @@ class ShowFollowingDetailView(DetailView):
     context_object_name = 'profile'
 
 
-class ShowFeedView(DetailView):
-    """Display the post feed for the profile selected by the URL."""
+class ShowFeedView(ProfileLoginRequiredMixin, DetailView):
+    """Display the post feed for the signed-in user's profile."""
 
     # The template uses this profile to retrieve posts by followed profiles.
     model = Profile
     template_name = 'mini_insta/show_feed.html'
     context_object_name = 'profile'
 
+    def get_object(self, queryset=None):
+        """Return the current profile; queryset is an unused optional lookup."""
+        return self.get_user_profile()
 
-class SearchView(ListView):
+
+class SearchView(ProfileLoginRequiredMixin, ListView):
     """Search profile information and post captions using a text query."""
 
-    # A query displays results; dispatch displays the form before a search.
+    # A query displays results; get displays the form before a search.
     template_name = 'mini_insta/search_results.html'
     context_object_name = 'posts'
 
-    def dispatch(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         """Display the search form when request has no query parameter.
 
         request is the incoming HTTP request.
         args and kwargs contain the URL arguments supplied to the view.
         """
-        # Keep the profile from the URL available in both search templates.
-        self.profile = get_object_or_404(Profile, pk=self.kwargs['pk'])
+        # Authentication runs before this method, even for the empty form.
+        self.profile = self.get_user_profile()
         if 'query' not in self.request.GET:
             return render(request, 'mini_insta/search.html',
                           {'profile': self.profile})
-        return super().dispatch(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         """Return posts whose captions contain the search text."""

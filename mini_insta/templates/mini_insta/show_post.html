@@ -8,11 +8,13 @@
 <h2>Post by {{ post.profile.display_name }}</h2>
 <p>{{ post.timestamp }}</p>
 
-{# Open the update or delete confirmation form for this post. #}
+{# Only this post's owner can update or delete it. #}
+{% if request.user.is_authenticated and request.user == post.profile.user %}
 <p>
     <a href="{% url 'mini_insta:update_post' post.pk %}">Update Post</a>
     <a href="{% url 'mini_insta:delete_post' post.pk %}">Delete Post</a>
 </p>
+{% endif %}
 {# Show the number of likes above the caption. #}
 <p>{{ post.get_likes.count }} Likes</p>
 <p class="bio-text">{{ post.caption }}</p>

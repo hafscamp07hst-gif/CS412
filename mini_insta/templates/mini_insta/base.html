@@ -17,6 +17,11 @@
                     All Profiles
                 </a>
             </nav>
+            {% if request.user.is_authenticated %}
+            <p>Logged in as {{ request.user.username }}</p>
+            {% else %}
+            <p>Not logged in</p>
+            {% endif %}
         </header>
 
         <main>
@@ -25,32 +30,32 @@
         </main>
 
         <footer>
-            {# Use the selected profile for the feed and profile navigation. #}
-            {% if profile %}
+            {# Private navigation always belongs to the signed-in account. #}
+            {% if request.user.is_authenticated %}
             <a class="home-link"
-               href="{% url 'mini_insta:show_feed' profile.pk %}">
+               href="{% url 'mini_insta:show_feed' %}">
                 <img class="home-button"
                      src="{% static 'mini_insta/images/home_button.png' %}"
                      alt="">
                 Post Feed
             </a>
             <p>
-                <a href="{% url 'mini_insta:show_profile' profile.pk %}">
-                    Profile
+                <a href="{% url 'mini_insta:show_own_profile' %}">
+                    My Profile
                 </a>
             </p>
             <p>
-                <a href="{% url 'mini_insta:search' profile.pk %}">
+                <a href="{% url 'mini_insta:search' %}">
                     Search
                 </a>
             </p>
             <p>
-                <a href="{% url 'mini_insta:create_post' profile.pk %}">
+                <a href="{% url 'mini_insta:create_post' %}">
                     Create a new post
                 </a>
             </p>
             {% else %}
-            {# The all-profiles page has no selected profile for a feed. #}
+            {# Visitors can browse public profile and post pages. #}
             <a class="home-link"
                href="{% url 'mini_insta:show_all_profiles' %}">
                 <img class="home-button"
