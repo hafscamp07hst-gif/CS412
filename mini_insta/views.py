@@ -17,7 +17,15 @@ from .forms import CreatePostForm, UpdatePostForm, UpdateProfileForm
 from .models import Photo, Post, Profile
 
 
-class ProfileLoginRequiredMixin(LoginRequiredMixin):
+class MiniInstaLoginRequiredMixin(LoginRequiredMixin):
+    """Send unauthenticated visitors to this application's login page."""
+
+    def get_login_url(self):
+        """Return the Mini Insta login URL for protected views."""
+        return reverse('mini_insta:login')
+
+
+class ProfileLoginRequiredMixin(MiniInstaLoginRequiredMixin):
     """Require authentication and locate the signed-in user's profile."""
 
     def get_user_profile(self):
@@ -28,7 +36,7 @@ class ProfileLoginRequiredMixin(LoginRequiredMixin):
         return profile
 
 
-class OwnPostRequiredMixin(LoginRequiredMixin):
+class OwnPostRequiredMixin(MiniInstaLoginRequiredMixin):
     """Limit post changes to posts owned by the authenticated account."""
 
     def get_queryset(self):

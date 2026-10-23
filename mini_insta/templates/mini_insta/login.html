@@ -1,0 +1,17 @@
+{# File: mini_insta/templates/mini_insta/login.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/23/2026 #}
+{# Description: Display the login form and preserve the requested next page. #}
+
+{% extends 'mini_insta/base.html' %}
+
+{% block content %}
+<h2>Login</h2>
+
+<form action="{% url 'mini_insta:login' %}" method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% url 'mini_insta:show_all_profiles' as default_next %}
+    <input type="hidden" name="next" value="{{ next|default:default_next }}">
+    <button type="submit">Login</button>
+</form>
+{% endblock %}

@@ -1,11 +1,11 @@
 # File: mini_insta/tests.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
-# Description: Test Task 1 authentication, ownership, and profile routing.
+# Description: Test account ownership, login, logout, and profile routing.
 
 from urllib.parse import parse_qs, urlsplit
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from .models import Post, Profile
@@ -181,3 +181,117 @@ class AuthenticationTests(TestCase):
                 self.assertEqual(self.client.get(
                     f'/mini_insta/profile/{self.profile.pk}/{action}').status_code,
                     404)
+
+
+class LoginLogoutTests(TestCase):
+    """Check Mini Insta login, redirects, logout, and navigation."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Create an ordinary account and profile for authentication flows."""
+        cls.user = User.objects.create_user('login-user', password='test-password')
+        cls.profile = Profile.objects.create(user=cls.user, username='login-user')
+
+    def test_login_page_displays_form_and_default_next(self):
+        """Show an app-styled login form with a CSRF token and default target."""
+        response = self.client.get('/mini_insta/login/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'mini_insta/login.html')
+        self.assertTemplateUsed(response, 'mini_insta/base.html')
+        for field in ['username', 'password', 'csrfmiddlewaretoken', 'next']:
+            self.assertContains(response, 'name="' + field + '"')
+        self.assertContains(response, 'name="next" value="/mini_insta/"')
+
+    def test_login_authenticates_and_returns_to_all_profiles(self):
+        """Persist the session and choose a valid default after direct login."""
+        response = self.client.post('/mini_insta/login/', {
+            'username': 'login-user', 'password': 'test-password'})
+        self.assertRedirects(response, '/mini_insta/')
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
+
+    def test_invalid_credentials_show_errors_without_login(self):
+        """Keep the form visible when credentials are incorrect."""
+        response = self.client.post('/mini_insta/login/', {
+            'username': 'login-user', 'password': 'wrong-password'})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['form'].errors)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_protected_views_use_the_app_login(self):
+        """Use Mini Insta login for profile actions and post changes alike."""
+        post = Post.objects.create(profile=self.profile)
+        paths = ['/mini_insta/profile', '/mini_insta/profile/update',
+                 '/mini_insta/profile/feed', '/mini_insta/profile/search',
+                 '/mini_insta/profile/create_post',
+                 f'/mini_insta/post/{post.pk}/update',
+                 f'/mini_insta/post/{post.pk}/delete']
+        for path in paths:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(urlsplit(response.url).path, '/mini_insta/login/')
+                login_page = self.client.get(response.url)
+                self.assertEqual(login_page.status_code, 200)
+                self.assertEqual(login_page.context['next'], path)
+
+    def test_login_returns_to_the_requested_page_with_its_query(self):
+        """Carry the original search URL through login and show its results."""
+        target = '/mini_insta/profile/search?query=login-user'
+        response = self.client.get(target)
+        login_page = self.client.get(response.url)
+        self.assertEqual(login_page.context['next'], target)
+        response = self.client.post('/mini_insta/login/', {
+            'username': 'login-user', 'password': 'test-password',
+            'next': login_page.context['next']})
+        self.assertRedirects(response, target)
+
+    def test_login_does_not_redirect_to_external_hosts(self):
+        """Fall back to All Profiles if a supplied next target is external."""
+        response = self.client.post('/mini_insta/login/', {
+            'username': 'login-user', 'password': 'test-password',
+            'next': 'https://example.com/elsewhere'})
+        self.assertRedirects(response, '/mini_insta/')
+
+    def test_logout_requires_post_and_ends_the_session(self):
+        """A GET cannot log out; a POST returns to the app confirmation."""
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get('/mini_insta/logout/').status_code, 405)
+        self.assertIn('_auth_user_id', self.client.session)
+        response = self.client.post('/mini_insta/logout/')
+        self.assertRedirects(response, '/mini_insta/logout_confirmation/')
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(self.client.get('/mini_insta/profile').status_code, 302)
+
+    def test_logout_form_requires_a_valid_csrf_token(self):
+        """Accept the navigation form's CSRF token and reject a missing one."""
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
+        page = client.get('/mini_insta/')
+        self.assertContains(page, 'action="/mini_insta/logout/" method="POST"')
+        self.assertEqual(client.post('/mini_insta/logout/').status_code, 403)
+        self.assertIn('_auth_user_id', client.session)
+        response = client.post('/mini_insta/logout/', {
+            'csrfmiddlewaretoken': client.cookies['csrftoken'].value})
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn('_auth_user_id', client.session)
+
+    def test_confirmation_links_to_mini_insta_login(self):
+        """Use an app-styled confirmation page with the correct login link."""
+        response = self.client.get('/mini_insta/logout_confirmation/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'mini_insta/logged_out.html')
+        self.assertTemplateUsed(response, 'mini_insta/base.html')
+        self.assertContains(response, 'href="/mini_insta/login/"')
+        self.assertNotContains(response, '/admin/login/')
+
+    def test_navigation_changes_after_login(self):
+        """Show Login for visitors and My Profile plus Log out for users."""
+        response = self.client.get('/mini_insta/')
+        self.assertContains(response, 'href="/mini_insta/login/"')
+        self.assertNotContains(response, 'action="/mini_insta/logout/"')
+        self.client.force_login(self.user)
+        response = self.client.get('/mini_insta/')
+        self.assertNotContains(response, 'href="/mini_insta/login/"')
+        self.assertContains(response, 'href="/mini_insta/profile"')
+        self.assertContains(response, 'action="/mini_insta/logout/" method="POST"')
+        self.assertContains(response, 'name="csrfmiddlewaretoken"')

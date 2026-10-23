@@ -16,6 +16,14 @@
                 <a href="{% url 'mini_insta:show_all_profiles' %}">
                     All Profiles
                 </a>
+                {% if request.user.is_authenticated %}
+                <form action="{% url 'mini_insta:logout' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit">Log out</button>
+                </form>
+                {% else %}
+                <a href="{% url 'mini_insta:login' %}">Login</a>
+                {% endif %}
             </nav>
             {% if request.user.is_authenticated %}
             <p>Logged in as {{ request.user.username }}</p>

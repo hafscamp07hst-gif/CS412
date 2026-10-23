@@ -2,7 +2,9 @@
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
 # Description: Connect profile and post URLs to their views.
 
+from django.contrib.auth import views as auth_views
 from django.urls import path
+from django.views.generic import TemplateView
 from .views import (
     CreatePostView,
     DeletePostView,
@@ -25,6 +27,24 @@ app_name = 'mini_insta'
 # Public pages use pk; private profile actions use the signed-in account.
 urlpatterns = [
     path('', ProfileListView.as_view(), name='show_all_profiles'),
+    path(
+        'login/',
+        auth_views.LoginView.as_view(
+            template_name='mini_insta/login.html',
+            next_page='mini_insta:show_all_profiles',
+        ),
+        name='login',
+    ),
+    path(
+        'logout/',
+        auth_views.LogoutView.as_view(next_page='mini_insta:logout_confirmation'),
+        name='logout',
+    ),
+    path(
+        'logout_confirmation/',
+        TemplateView.as_view(template_name='mini_insta/logged_out.html'),
+        name='logout_confirmation',
+    ),
     path('profile/<int:pk>', ProfileDetailView.as_view(), name='show_profile'),
     path('profile', OwnProfileDetailView.as_view(), name='show_own_profile'),
     path(
