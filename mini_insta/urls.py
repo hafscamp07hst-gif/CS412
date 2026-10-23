@@ -44,7 +44,10 @@ urlpatterns = [
     ),
     path(
         'logout/',
-        auth_views.LogoutView.as_view(next_page='mini_insta:logout_confirmation'),
+        auth_views.LogoutView.as_view(
+            next_page='mini_insta:logout_confirmation',
+            http_method_names=['post', 'options'],
+        ),
         name='logout',
     ),
     path(
