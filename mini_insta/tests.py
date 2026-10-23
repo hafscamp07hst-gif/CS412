@@ -1,6 +1,6 @@
 # File: mini_insta/tests.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
-# Description: Test authentication, registration, likes, and follows.
+# Description: Test authentication, registration, social actions, and comments.
 
 from urllib.parse import parse_qs, urlsplit
 
@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import Follow, Like, Post, Profile
+from .models import Comment, Follow, Like, Post, Profile
 
 
 class AuthenticationTests(TestCase):
@@ -669,3 +669,159 @@ class LikesAndFollowsTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 for action in self.action_paths():
                     self.assertNotContains(response, f'action="{action}"')
+
+
+class CommentCreationTests(TestCase):
+    """Create comments only as the signed-in profile on the requested post."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Create a commenter and another author with posts for each account."""
+        cls.user = User.objects.create_user('commenter', password='test-password')
+        cls.other_user = User.objects.create_user('comment-author')
+        cls.profile = Profile.objects.create(user=cls.user, username='commenter')
+        cls.other_profile = Profile.objects.create(
+            user=cls.other_user, username='comment-author')
+        cls.post = Post.objects.create(profile=cls.other_profile, caption='A post')
+        cls.own_post = Post.objects.create(profile=cls.profile, caption='Own post')
+
+    def comment_url(self, post=None):
+        """Return the creation URL for post, defaulting to the other author's."""
+        post = post or self.post
+        return f'/mini_insta/post/{post.pk}/create_comment'
+
+    def test_comment_route(self):
+        """Resolve the named creation URL to its target post."""
+        self.assertEqual(reverse('mini_insta:create_comment',
+                                 kwargs={'pk': self.post.pk}), self.comment_url())
+
+    def test_anonymous_comment_requests_require_login(self):
+        """Redirect both viewing and submitting the form to Mini Insta login."""
+        for method in ['get', 'post']:
+            with self.subTest(method=method):
+                response = getattr(self.client, method)(
+                    self.comment_url(), {'text': 'Anonymous comment'})
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(urlsplit(response.url).path, '/mini_insta/login/')
+                next_url = parse_qs(urlsplit(response.url).query)['next'][0]
+                self.assertEqual(urlsplit(next_url).path, self.comment_url())
+        self.assertFalse(Comment.objects.exists())
+
+    def test_authenticated_get_displays_text_form_without_writing(self):
+        """Display only editable text and leave author/post assignment to the view."""
+        self.client.force_login(self.user)
+        response = self.client.get(self.comment_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'mini_insta/create_comment_form.html')
+        self.assertEqual(response.context['post'], self.post)
+        self.assertEqual(set(response.context['form'].fields), {'text'})
+        self.assertContains(response, 'name="text"')
+        self.assertNotContains(response, 'name="profile"')
+        self.assertNotContains(response, 'name="post"')
+        self.assertFalse(Comment.objects.exists())
+
+    def test_comment_uses_current_profile_and_url_post(self):
+        """Ignore spoofed author/target IDs and redirect to the commented post."""
+        self.client.force_login(self.user)
+        response = self.client.post(self.comment_url(), {
+            'text': 'A new comment', 'profile': self.other_profile.pk,
+            'post': self.own_post.pk})
+        self.assertRedirects(response, reverse('mini_insta:show_post',
+                             kwargs={'pk': self.post.pk}))
+        comment = Comment.objects.get()
+        self.assertEqual(comment.profile, self.profile)
+        self.assertEqual(comment.post, self.post)
+        self.assertEqual(comment.text, 'A new comment')
+        self.assertContains(self.client.get(response.url), 'A new comment')
+
+    def test_users_can_comment_on_their_own_posts(self):
+        """Allow own-post discussion, independently of the own-post like rule."""
+        self.client.force_login(self.user)
+        response = self.client.post(self.comment_url(self.own_post),
+                                    {'text': 'My own comment'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Comment.objects.get().post, self.own_post)
+        self.assertEqual(Comment.objects.get().profile, self.profile)
+
+    def test_empty_comments_are_rejected_with_errors(self):
+        """Reject missing, empty, and whitespace-only text without saving it."""
+        self.client.force_login(self.user)
+        for data in [{}, {'text': ''}, {'text': '   \n  '}]:
+            with self.subTest(data=data):
+                response = self.client.post(self.comment_url(), data)
+                self.assertEqual(response.status_code, 200)
+                self.assertTemplateUsed(response, 'mini_insta/create_comment_form.html')
+                self.assertIn('text', response.context['form'].errors)
+                self.assertEqual(response.context['post'], self.post)
+        self.assertFalse(Comment.objects.exists())
+
+    def test_missing_post_returns_not_found(self):
+        """Handle an absent target for GET, valid POST, and invalid POST."""
+        self.client.force_login(self.user)
+        path = '/mini_insta/post/999999/create_comment'
+        self.assertEqual(self.client.get(path).status_code, 404)
+        for data in [{'text': 'A comment'}, {'text': ''}]:
+            self.assertEqual(self.client.post(path, data).status_code, 404)
+        self.assertFalse(Comment.objects.exists())
+
+    def test_account_without_profile_cannot_comment(self):
+        """Handle a logged-in account lacking its Profile without server errors."""
+        user = User.objects.create_user('no-comment-profile')
+        self.client.force_login(user)
+        self.assertEqual(self.client.get(self.comment_url()).status_code, 404)
+        self.assertEqual(self.client.post(self.comment_url(),
+                         {'text': 'A comment'}).status_code, 404)
+        self.assertFalse(Comment.objects.exists())
+
+    def test_comment_requires_valid_csrf_token(self):
+        """Reject a missing token, then accept the token in an actual page form."""
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
+        self.assertEqual(client.post(self.comment_url(),
+                         {'text': 'Blocked'}).status_code, 403)
+        client.get(reverse('mini_insta:show_post', kwargs={'pk': self.post.pk}))
+        response = client.post(self.comment_url(), {
+            'text': 'Allowed',
+            'csrfmiddlewaretoken': client.cookies['csrftoken'].value})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Comment.objects.get().text, 'Allowed')
+
+    def test_public_post_shows_comments_but_hides_creation_form(self):
+        """Keep comments readable while offering the form only after login."""
+        Comment.objects.create(profile=self.profile, post=self.post,
+                               text='Existing public comment')
+        path = reverse('mini_insta:show_post', kwargs={'pk': self.post.pk})
+        response = self.client.get(path)
+        self.assertContains(response, 'Existing public comment')
+        self.assertNotContains(response, f'action="{self.comment_url()}"')
+        self.client.force_login(self.user)
+        response = self.client.get(path)
+        self.assertContains(response,
+                            f'action="{self.comment_url()}" method="POST"')
+
+    def test_feed_forms_use_the_correct_posts_and_unique_ids(self):
+        """Give each followed post its own form with an unambiguous text label."""
+        self.client.force_login(self.user)
+        Follow.objects.create(profile=self.other_profile,
+                              follower_profile=self.profile)
+        second_post = Post.objects.create(profile=self.other_profile)
+        response = self.client.get('/mini_insta/profile/feed')
+        for post in [self.post, second_post]:
+            with self.subTest(post=post.pk):
+                self.assertContains(response,
+                    f'action="{self.comment_url(post)}" method="POST"')
+                self.assertContains(response, f'id="comment-{post.pk}"', count=1)
+                self.assertContains(response, f'for="comment-{post.pk}"', count=1)
+
+    def test_comment_html_is_escaped_when_displayed(self):
+        """Display submitted HTML as text in both post detail and feed."""
+        self.client.force_login(self.user)
+        Follow.objects.create(profile=self.other_profile,
+                              follower_profile=self.profile)
+        text = '<script>alert("comment")</script>'
+        response = self.client.post(self.comment_url(), {'text': text})
+        self.assertEqual(response.status_code, 302)
+        for path in [response.url, '/mini_insta/profile/feed']:
+            page = self.client.get(path)
+            self.assertNotContains(page, '<script>')
+            self.assertContains(page, '&lt;script&gt;')

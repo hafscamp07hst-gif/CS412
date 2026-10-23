@@ -1,9 +1,19 @@
 # File: mini_insta/forms.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 10/2/2026
-# Description: Collect new profiles, post captions, and profile updates.
+# Description: Collect profile details, post captions, and comments.
 
 from django import forms
-from .models import Post, Profile
+from .models import Comment, Post, Profile
+
+
+class CreateCommentForm(forms.ModelForm):
+    """Collect only a comment's text; the view assigns its author and post."""
+
+    class Meta:
+        """Associate the form with Comment and expose its required text."""
+
+        model = Comment
+        fields = ['text']
 
 
 class CreateProfileForm(forms.ModelForm):

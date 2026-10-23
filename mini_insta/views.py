@@ -18,6 +18,7 @@ from django.views.generic import (
     View,
 )
 from .forms import (
+    CreateCommentForm,
     CreatePostForm,
     CreateProfileForm,
     UpdatePostForm,
@@ -417,3 +418,33 @@ class DeleteLikeView(ProfileLoginRequiredMixin, View):
         post = get_object_or_404(Post, pk=kwargs['pk'])
         Like.objects.filter(post=post, profile=actor).delete()
         return redirect('mini_insta:show_post', pk=post.pk)
+
+
+class CreateCommentView(ProfileLoginRequiredMixin, CreateView):
+    """Create a comment as the logged-in profile on the post in the URL."""
+
+    form_class = CreateCommentForm
+    template_name = 'mini_insta/create_comment_form.html'
+
+    def get_context_data(self, **kwargs):
+        """Add the target post and current profile to the comment form.
+
+        kwargs contains extra context values supplied by the generic view.
+        """
+        context = super().get_context_data(**kwargs)
+        context['post'] = get_object_or_404(Post, pk=self.kwargs['pk'])
+        context['profile'] = self.get_user_profile()
+        return context
+
+    def form_valid(self, form):
+        """Attach the author and target before saving the comment.
+
+        form is the validated CreateCommentForm containing the comment text.
+        """
+        form.instance.profile = self.get_user_profile()
+        form.instance.post = get_object_or_404(Post, pk=self.kwargs['pk'])
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        """Return the post detail URL after the comment has been saved."""
+        return reverse('mini_insta:show_post', kwargs={'pk': self.object.post_id})

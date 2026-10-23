@@ -6,6 +6,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.views.generic import TemplateView
 from .views import (
+    CreateCommentView,
     CreatePostView,
     CreateProfileView,
     DeleteFollowView,
@@ -74,6 +75,8 @@ urlpatterns = [
     path('profile/search', SearchView.as_view(), name='search'),
     path('profile/feed', ShowFeedView.as_view(), name='show_feed'),
     path('post/<int:pk>', PostDetailView.as_view(), name='show_post'),
+    path('post/<int:pk>/create_comment', CreateCommentView.as_view(),
+         name='create_comment'),
     path('post/<int:pk>/like', LikePostView.as_view(), name='like'),
     path('post/<int:pk>/delete_like', DeleteLikeView.as_view(), name='delete_like'),
     path('post/<int:pk>/update', UpdatePostView.as_view(), name='update_post'),

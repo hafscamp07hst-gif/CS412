@@ -58,6 +58,7 @@
         {% empty %}
         <p>No comments yet.</p>
         {% endfor %}
+        {% include 'mini_insta/post_comment_form.html' %}
 
         <a href="{% url 'mini_insta:show_post' post.pk %}">View Post</a>
     </div>
