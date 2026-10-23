@@ -1,6 +1,6 @@
 # File: mini_insta/tests.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
-# Description: Test account ownership, login, logout, and profile routing.
+# Description: Test account ownership, authentication, and registration.
 
 from urllib.parse import parse_qs, urlsplit
 
@@ -295,3 +295,155 @@ class LoginLogoutTests(TestCase):
         self.assertContains(response, 'href="/mini_insta/profile"')
         self.assertContains(response, 'action="/mini_insta/logout/" method="POST"')
         self.assertContains(response, 'name="csrfmiddlewaretoken"')
+
+
+class RegistrationTests(TestCase):
+    """Create matching accounts and profiles without partial registrations."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Create an existing account and profile for duplicate-name checks."""
+        cls.existing_user = User.objects.create_user(
+            'existing', password='Existing-Password!72849')
+        cls.existing_profile = Profile.objects.create(
+            user=cls.existing_user, username='existing', display_name='Existing')
+
+    def registration_data(self, **changes):
+        """Return valid registration fields, overridden by changes."""
+        data = {
+            'username': 'freshprofile',
+            'password1': 'New-Account!72849',
+            'password2': 'New-Account!72849',
+            'display_name': 'New Person',
+            'bio_text': 'A new profile.',
+            'profile_image_url': 'https://example.com/profile.png',
+        }
+        data.update(changes)
+        return data
+
+    def test_registration_route(self):
+        """Expose the create_profile route requested by the assignment."""
+        self.assertEqual(reverse('mini_insta:create_profile'),
+                         '/mini_insta/create_profile')
+
+    def test_registration_displays_both_forms_with_one_username(self):
+        """Share one username field while collecting both forms' other data."""
+        response = self.client.get('/mini_insta/create_profile')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'mini_insta/create_profile_form.html')
+        self.assertTemplateUsed(response, 'mini_insta/base.html')
+        self.assertEqual(set(response.context['form'].fields), {
+            'username', 'display_name', 'bio_text', 'profile_image_url'})
+        self.assertNotIn('user', response.context['form'].fields)
+        self.assertContains(response, 'name="username"', count=1)
+        for name in ['password1', 'password2', 'display_name', 'bio_text',
+                     'profile_image_url', 'csrfmiddlewaretoken']:
+            self.assertContains(response, 'name="' + name + '"')
+
+    def test_registration_saves_matching_names_and_logs_in(self):
+        """Create an ordinary account, attach its profile, and log it in."""
+        response = self.client.post('/mini_insta/create_profile',
+                                    self.registration_data())
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(username='freshprofile')
+        profile = Profile.objects.get(username='freshprofile')
+        self.assertEqual(profile.user, user)
+        self.assertEqual(profile.display_name, 'New Person')
+        self.assertEqual(profile.bio_text, 'A new profile.')
+        self.assertEqual(profile.profile_image_url,
+                         'https://example.com/profile.png')
+        self.assertTrue(user.check_password('New-Account!72849'))
+        self.assertFalse(user.is_staff or user.is_superuser)
+        self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
+        self.assertRedirects(response, profile.get_absolute_url())
+        self.assertEqual(self.client.get('/mini_insta/profile/create_post')
+                         .status_code, 200)
+
+    def test_registration_cannot_attach_an_existing_account(self):
+        """Ignore client-supplied account IDs and privilege fields."""
+        response = self.client.post('/mini_insta/create_profile',
+            self.registration_data(user=self.existing_user.pk,
+                                   is_staff='on', is_superuser='on'))
+        self.assertEqual(response.status_code, 302)
+        profile = Profile.objects.get(username='freshprofile')
+        self.assertNotEqual(profile.user_id, self.existing_user.pk)
+        self.assertFalse(profile.user.is_staff or profile.user.is_superuser)
+
+    def test_mismatched_passwords_do_not_create_records(self):
+        """Redisplay account errors without saving a valid profile alone."""
+        response = self.client.post('/mini_insta/create_profile',
+            self.registration_data(password2='Different-Password!72849'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('password2', response.context['user_form'].errors)
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(Profile.objects.count(), 1)
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(response.context['form']['display_name'].value(),
+                         'New Person')
+
+    def test_registration_uses_the_normalized_account_username(self):
+        """Keep both names identical when Django normalizes Unicode input."""
+        response = self.client.post('/mini_insta/create_profile',
+            self.registration_data(username='ｆｒｅｓｈｐｒｏｆｉｌｅ'))
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(username='freshprofile')
+        self.assertEqual(Profile.objects.get(user=user).username, user.username)
+
+    def test_duplicate_username_does_not_create_another_profile(self):
+        """Report an existing login name instead of reusing its account."""
+        response = self.client.post('/mini_insta/create_profile',
+            self.registration_data(username='existing'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('username', response.context['user_form'].errors)
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(Profile.objects.count(), 1)
+
+    def test_invalid_profile_does_not_create_an_orphan_account(self):
+        """Validate the profile before saving the otherwise valid account."""
+        response = self.client.post('/mini_insta/create_profile',
+            self.registration_data(profile_image_url='invalid-image-url'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('profile_image_url', response.context['form'].errors)
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(Profile.objects.count(), 1)
+
+    def test_errors_from_both_forms_are_preserved(self):
+        """Bind both forms when an invalid submission needs to be displayed."""
+        response = self.client.post('/mini_insta/create_profile',
+            self.registration_data(profile_image_url='invalid-image-url',
+                                   password2='Different-Password!72849'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['form'].is_bound)
+        self.assertTrue(response.context['user_form'].is_bound)
+        self.assertIn('profile_image_url', response.context['form'].errors)
+        self.assertIn('password2', response.context['user_form'].errors)
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_registration_keeps_django_password_validation(self):
+        """Keep weak-password checks for new registrations."""
+        response = self.client.post('/mini_insta/create_profile',
+            self.registration_data(password1='abc123', password2='abc123'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('password2', response.context['user_form'].errors)
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(Profile.objects.count(), 1)
+
+    def test_registration_requires_csrf_token(self):
+        """Reject a missing CSRF token and accept the actual registration form."""
+        client = Client(enforce_csrf_checks=True)
+        self.assertEqual(client.post('/mini_insta/create_profile',
+                         self.registration_data()).status_code, 403)
+        response = client.get('/mini_insta/create_profile')
+        self.assertEqual(response.status_code, 200)
+        data = self.registration_data(
+            csrfmiddlewaretoken=client.cookies['csrftoken'].value)
+        self.assertEqual(client.post('/mini_insta/create_profile', data)
+                         .status_code, 302)
+
+    def test_registration_link_only_appears_for_visitors(self):
+        """Advertise creating a profile only when the visitor is logged out."""
+        response = self.client.get('/mini_insta/')
+        self.assertContains(response, 'href="/mini_insta/create_profile"')
+        self.client.force_login(self.existing_user)
+        response = self.client.get('/mini_insta/')
+        self.assertNotContains(response, 'href="/mini_insta/create_profile"')

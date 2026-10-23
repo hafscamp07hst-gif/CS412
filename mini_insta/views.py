@@ -1,8 +1,11 @@
 # File: mini_insta/views.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
-# Description: Display profiles and connections, and create, update, and delete posts.
+# Description: Register accounts, display profiles, and manage profiles and posts.
 
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import render
 from django.urls import reverse
@@ -13,7 +16,12 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
-from .forms import CreatePostForm, UpdatePostForm, UpdateProfileForm
+from .forms import (
+    CreatePostForm,
+    CreateProfileForm,
+    UpdatePostForm,
+    UpdateProfileForm,
+)
 from .models import Photo, Post, Profile
 
 
@@ -60,6 +68,46 @@ class ProfileDetailView(DetailView):
     model = Profile
     template_name = 'mini_insta/show_profile.html'
     context_object_name = 'profile'
+
+
+class CreateProfileView(CreateView):
+    """Register an account and its profile together, then log the user in."""
+
+    model = Profile
+    form_class = CreateProfileForm
+    template_name = 'mini_insta/create_profile_form.html'
+
+    def get_context_data(self, **kwargs):
+        """Include the account form, preserving submitted fields and errors.
+
+        kwargs contains extra context values supplied by the generic view.
+        """
+        context = super().get_context_data(**kwargs)
+        if 'user_form' not in context:
+            data = self.request.POST if self.request.method == 'POST' else None
+            context['user_form'] = UserCreationForm(data)
+        return context
+
+    def form_valid(self, form):
+        """Save both validated forms and log in the new account.
+
+        form is the validated CreateProfileForm for the new profile.
+        """
+        user_form = UserCreationForm(self.request.POST)
+        if not user_form.is_valid():
+            return self.render_to_response(
+                self.get_context_data(form=form, user_form=user_form))
+
+        # Save both records together so a profile failure cannot orphan a User.
+        with transaction.atomic():
+            user = user_form.save()
+            form.instance.user = user
+            form.instance.username = user.username
+            response = super().form_valid(form)
+
+        login(self.request, user,
+              backend='django.contrib.auth.backends.ModelBackend')
+        return response
 
 
 class OwnProfileDetailView(ProfileLoginRequiredMixin, ProfileDetailView):

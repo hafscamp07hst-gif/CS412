@@ -1,9 +1,19 @@
 # File: mini_insta/forms.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 10/2/2026
-# Description: Collect post captions and updates to profile information.
+# Description: Collect new profiles, post captions, and profile updates.
 
 from django import forms
 from .models import Post, Profile
+
+
+class CreateProfileForm(forms.ModelForm):
+    """Collect profile details for a new account."""
+
+    class Meta:
+        """Expose profile fields while assigning its User in the view."""
+
+        model = Profile
+        fields = ['username', 'display_name', 'bio_text', 'profile_image_url']
 
 
 class CreatePostForm(forms.ModelForm):

@@ -7,6 +7,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from .views import (
     CreatePostView,
+    CreateProfileView,
     DeletePostView,
     OwnProfileDetailView,
     PostDetailView,
@@ -27,6 +28,7 @@ app_name = 'mini_insta'
 # Public pages use pk; private profile actions use the signed-in account.
 urlpatterns = [
     path('', ProfileListView.as_view(), name='show_all_profiles'),
+    path('create_profile', CreateProfileView.as_view(), name='create_profile'),
     path(
         'login/',
         auth_views.LoginView.as_view(
