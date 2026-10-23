@@ -8,7 +8,11 @@ from django.views.generic import TemplateView
 from .views import (
     CreatePostView,
     CreateProfileView,
+    DeleteFollowView,
+    DeleteLikeView,
     DeletePostView,
+    FollowProfileView,
+    LikePostView,
     OwnProfileDetailView,
     PostDetailView,
     ProfileDetailView,
@@ -48,6 +52,9 @@ urlpatterns = [
         name='logout_confirmation',
     ),
     path('profile/<int:pk>', ProfileDetailView.as_view(), name='show_profile'),
+    path('profile/<int:pk>/follow', FollowProfileView.as_view(), name='follow'),
+    path('profile/<int:pk>/delete_follow', DeleteFollowView.as_view(),
+         name='delete_follow'),
     path('profile', OwnProfileDetailView.as_view(), name='show_own_profile'),
     path(
         'profile/update',
@@ -67,6 +74,8 @@ urlpatterns = [
     path('profile/search', SearchView.as_view(), name='search'),
     path('profile/feed', ShowFeedView.as_view(), name='show_feed'),
     path('post/<int:pk>', PostDetailView.as_view(), name='show_post'),
+    path('post/<int:pk>/like', LikePostView.as_view(), name='like'),
+    path('post/<int:pk>/delete_like', DeleteLikeView.as_view(), name='delete_like'),
     path('post/<int:pk>/update', UpdatePostView.as_view(), name='update_post'),
     path('post/<int:pk>/delete', DeletePostView.as_view(), name='delete_post'),
     path(

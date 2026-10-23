@@ -61,6 +61,7 @@
         </a>
         {% endwith %}
         <p>{{ post.get_likes.count }} Likes</p>
+        {% include 'mini_insta/post_like_controls.html' %}
         <p class="bio-text">{{ post.caption }}</p>
         <a href="{% url 'mini_insta:show_post' post.pk %}">View Post</a>
     </div>

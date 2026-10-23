@@ -6,8 +6,8 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.http import Http404
-from django.shortcuts import render
+from django.http import Http404, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import (
     CreateView,
@@ -15,6 +15,7 @@ from django.views.generic import (
     DetailView,
     ListView,
     UpdateView,
+    View,
 )
 from .forms import (
     CreatePostForm,
@@ -22,7 +23,7 @@ from .forms import (
     UpdatePostForm,
     UpdateProfileForm,
 )
-from .models import Photo, Post, Profile
+from .models import Follow, Like, Photo, Post, Profile
 
 
 class MiniInstaLoginRequiredMixin(LoginRequiredMixin):
@@ -68,6 +69,19 @@ class ProfileDetailView(DetailView):
     model = Profile
     template_name = 'mini_insta/show_profile.html'
     context_object_name = 'profile'
+
+    def get_context_data(self, **kwargs):
+        """Add whether the signed-in account follows this profile.
+
+        kwargs contains extra context values supplied by the generic view.
+        """
+        context = super().get_context_data(**kwargs)
+        context['is_following'] = False
+        if self.request.user.is_authenticated:
+            context['is_following'] = Follow.objects.filter(
+                profile=self.object,
+                follower_profile__user=self.request.user).exists()
+        return context
 
 
 class CreateProfileView(CreateView):
@@ -149,6 +163,10 @@ class PostDetailView(DetailView):
 
         # Use the author's profile for the feed and profile navigation links.
         context['profile'] = self.object.profile
+        context['liked_post_ids'] = []
+        if self.request.user.is_authenticated:
+            context['liked_post_ids'] = Like.objects.filter(
+                profile__user=self.request.user).values_list('post_id', flat=True)
         return context
 
 
@@ -283,6 +301,16 @@ class ShowFeedView(ProfileLoginRequiredMixin, DetailView):
         """Return the current profile; queryset is an unused optional lookup."""
         return self.get_user_profile()
 
+    def get_context_data(self, **kwargs):
+        """Add the current account's liked post IDs for the feed buttons.
+
+        kwargs contains extra context values supplied by the generic view.
+        """
+        context = super().get_context_data(**kwargs)
+        context['liked_post_ids'] = Like.objects.filter(
+            profile__user=self.request.user).values_list('post_id', flat=True)
+        return context
+
 
 class SearchView(ProfileLoginRequiredMixin, ListView):
     """Search profile information and post captions using a text query."""
@@ -326,4 +354,66 @@ class SearchView(ProfileLoginRequiredMixin, ListView):
         context['profiles'] = profiles
         # ListView already obtained these posts from get_queryset.
         context['posts'] = self.object_list
+        context['liked_post_ids'] = Like.objects.filter(
+            profile__user=self.request.user).values_list('post_id', flat=True)
         return context
+
+
+class FollowProfileView(ProfileLoginRequiredMixin, View):
+    """Create a follow from the logged-in profile to the target profile."""
+
+    def post(self, request, *args, **kwargs):
+        """Follow the profile identified by kwargs['pk'].
+
+        request is the incoming POST; args contains any additional URL arguments.
+        """
+        actor = self.get_user_profile()
+        profile = get_object_or_404(Profile, pk=kwargs['pk'])
+        if profile.user_id == request.user.pk:
+            return HttpResponseForbidden('You cannot follow your own profile.')
+        Follow.objects.get_or_create(profile=profile, follower_profile=actor)
+        return redirect('mini_insta:show_profile', pk=profile.pk)
+
+
+class DeleteFollowView(ProfileLoginRequiredMixin, View):
+    """Remove only the logged-in profile's follow of the target profile."""
+
+    def post(self, request, *args, **kwargs):
+        """Unfollow the profile identified by kwargs['pk'].
+
+        request is the incoming POST; args contains any additional URL arguments.
+        """
+        actor = self.get_user_profile()
+        profile = get_object_or_404(Profile, pk=kwargs['pk'])
+        Follow.objects.filter(profile=profile, follower_profile=actor).delete()
+        return redirect('mini_insta:show_profile', pk=profile.pk)
+
+
+class LikePostView(ProfileLoginRequiredMixin, View):
+    """Create a like by the logged-in profile on another user's post."""
+
+    def post(self, request, *args, **kwargs):
+        """Like the post identified by kwargs['pk'].
+
+        request is the incoming POST; args contains any additional URL arguments.
+        """
+        actor = self.get_user_profile()
+        post = get_object_or_404(Post, pk=kwargs['pk'])
+        if post.profile.user_id == request.user.pk:
+            return HttpResponseForbidden('You cannot like your own post.')
+        Like.objects.get_or_create(post=post, profile=actor)
+        return redirect('mini_insta:show_post', pk=post.pk)
+
+
+class DeleteLikeView(ProfileLoginRequiredMixin, View):
+    """Remove only the logged-in profile's like from the target post."""
+
+    def post(self, request, *args, **kwargs):
+        """Unlike the post identified by kwargs['pk'].
+
+        request is the incoming POST; args contains any additional URL arguments.
+        """
+        actor = self.get_user_profile()
+        post = get_object_or_404(Post, pk=kwargs['pk'])
+        Like.objects.filter(post=post, profile=actor).delete()
+        return redirect('mini_insta:show_post', pk=post.pk)

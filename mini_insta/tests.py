@@ -1,6 +1,6 @@
 # File: mini_insta/tests.py
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
-# Description: Test account ownership, authentication, and registration.
+# Description: Test authentication, registration, likes, and follows.
 
 from urllib.parse import parse_qs, urlsplit
 
@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import Post, Profile
+from .models import Follow, Like, Post, Profile
 
 
 class AuthenticationTests(TestCase):
@@ -447,3 +447,225 @@ class RegistrationTests(TestCase):
         self.client.force_login(self.existing_user)
         response = self.client.get('/mini_insta/')
         self.assertNotContains(response, 'href="/mini_insta/create_profile"')
+
+
+class LikesAndFollowsTests(TestCase):
+    """Limit social actions to the signed-in profile and show their state."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Create three users, profiles, and posts to test ownership."""
+        cls.actor_user = User.objects.create_user('actor')
+        cls.other_user = User.objects.create_user('publisher')
+        cls.third_user = User.objects.create_user('third')
+        cls.actor = Profile.objects.create(user=cls.actor_user, username='actor')
+        cls.other = Profile.objects.create(user=cls.other_user, username='publisher')
+        cls.third = Profile.objects.create(user=cls.third_user, username='third')
+        cls.own_post = Post.objects.create(profile=cls.actor, caption='Own caption')
+        cls.other_post = Post.objects.create(profile=cls.other, caption='Other caption')
+
+    def action_paths(self):
+        """Return all four social action paths using the other user's objects."""
+        return [f'/mini_insta/profile/{self.other.pk}/follow',
+                f'/mini_insta/profile/{self.other.pk}/delete_follow',
+                f'/mini_insta/post/{self.other_post.pk}/like',
+                f'/mini_insta/post/{self.other_post.pk}/delete_like']
+
+    def test_required_social_routes(self):
+        """Resolve each of the assignment's four required URL patterns."""
+        for name, path, pk in zip(
+                ['follow', 'delete_follow', 'like', 'delete_like'],
+                self.action_paths(),
+                [self.other.pk, self.other.pk,
+                 self.other_post.pk, self.other_post.pk]):
+            with self.subTest(name=name):
+                self.assertEqual(reverse('mini_insta:' + name,
+                                         kwargs={'pk': pk}), path)
+
+    def test_anonymous_actions_require_login(self):
+        """Redirect anonymous action requests to the app login without writes."""
+        for path in self.action_paths():
+            for method in ['get', 'post']:
+                with self.subTest(path=path, method=method):
+                    response = getattr(self.client, method)(path)
+                    self.assertEqual(response.status_code, 302)
+                    self.assertEqual(urlsplit(response.url).path,
+                                     '/mini_insta/login/')
+                    self.assertEqual(parse_qs(urlsplit(response.url).query)
+                                     .get('next'), [path])
+        self.assertEqual(Follow.objects.count(), 0)
+        self.assertEqual(Like.objects.count(), 0)
+
+    def test_get_requests_do_not_change_social_data(self):
+        """Require a POST rather than mutate data when following a URL."""
+        self.client.force_login(self.actor_user)
+        Follow.objects.create(profile=self.other, follower_profile=self.actor)
+        Like.objects.create(post=self.other_post, profile=self.actor)
+        for path in self.action_paths():
+            with self.subTest(path=path):
+                self.assertEqual(self.client.get(path).status_code, 405)
+        self.assertEqual(Follow.objects.count(), 1)
+        self.assertEqual(Like.objects.count(), 1)
+
+    def test_follow_is_created_for_current_profile_only_once(self):
+        """Ignore spoofed actor IDs and avoid duplicate follows on repeat POSTs."""
+        self.client.force_login(self.actor_user)
+        path = self.action_paths()[0]
+        for attempt in range(2):
+            response = self.client.post(path, {
+                'follower_profile': self.third.pk, 'profile': self.third.pk})
+            self.assertRedirects(response, self.other.get_absolute_url())
+        self.assertEqual(Follow.objects.count(), 1)
+        self.assertTrue(Follow.objects.filter(
+            profile=self.other, follower_profile=self.actor).exists())
+        self.assertIn(self.other, self.actor.get_following())
+        self.assertIn(self.actor, self.other.get_followers())
+        self.assertIn(self.other_post, self.actor.get_post_feed())
+
+    def test_unfollow_only_deletes_current_profiles_follow(self):
+        """Keep other followers intact and allow an already-absent unfollow."""
+        self.client.force_login(self.actor_user)
+        Follow.objects.create(profile=self.other, follower_profile=self.actor)
+        other_follow = Follow.objects.create(
+            profile=self.other, follower_profile=self.third)
+        for attempt in range(2):
+            response = self.client.post(self.action_paths()[1], {
+                'follower_profile': self.third.pk})
+            self.assertRedirects(response, self.other.get_absolute_url())
+        self.assertEqual(Follow.objects.count(), 1)
+        self.assertTrue(Follow.objects.filter(pk=other_follow.pk).exists())
+        self.assertNotIn(self.other_post, self.actor.get_post_feed())
+
+    def test_like_is_created_for_current_profile_only_once(self):
+        """Ignore spoofed actor IDs and avoid duplicate likes on repeat POSTs."""
+        self.client.force_login(self.actor_user)
+        for attempt in range(2):
+            response = self.client.post(self.action_paths()[2], {
+                'profile': self.third.pk, 'post': self.own_post.pk})
+            self.assertRedirects(response, reverse('mini_insta:show_post',
+                                 kwargs={'pk': self.other_post.pk}))
+        self.assertEqual(Like.objects.count(), 1)
+        self.assertTrue(Like.objects.filter(
+            post=self.other_post, profile=self.actor).exists())
+
+    def test_unlike_only_deletes_current_profiles_like(self):
+        """Keep other likes intact and allow an already-absent unlike."""
+        self.client.force_login(self.actor_user)
+        Like.objects.create(post=self.other_post, profile=self.actor)
+        other_like = Like.objects.create(post=self.other_post, profile=self.third)
+        for attempt in range(2):
+            response = self.client.post(self.action_paths()[3], {
+                'profile': self.third.pk})
+            self.assertRedirects(response, reverse('mini_insta:show_post',
+                                 kwargs={'pk': self.other_post.pk}))
+        self.assertEqual(Like.objects.count(), 1)
+        self.assertTrue(Like.objects.filter(pk=other_like.pk).exists())
+
+    def test_following_yourself_and_liking_own_posts_is_forbidden(self):
+        """Reject self-actions even when someone posts to their URLs directly."""
+        self.client.force_login(self.actor_user)
+        for path in [f'/mini_insta/profile/{self.actor.pk}/follow',
+                     f'/mini_insta/post/{self.own_post.pk}/like']:
+            with self.subTest(path=path):
+                self.assertEqual(self.client.post(path).status_code, 403)
+        self.assertEqual(Follow.objects.count(), 0)
+        self.assertEqual(Like.objects.count(), 0)
+
+    def test_other_profiles_owned_by_same_account_cannot_be_targets(self):
+        """Keep the self-action rule consistent for migrated shared accounts."""
+        extra = Profile.objects.create(user=self.actor_user, username='legacy')
+        extra_post = Post.objects.create(profile=extra)
+        self.client.force_login(self.actor_user)
+        for path in [f'/mini_insta/profile/{extra.pk}/follow',
+                     f'/mini_insta/post/{extra_post.pk}/like']:
+            with self.subTest(path=path):
+                self.assertEqual(self.client.post(path).status_code, 403)
+
+    def test_missing_targets_return_not_found(self):
+        """Reject actions on absent profiles or posts without creating records."""
+        self.client.force_login(self.actor_user)
+        for path in ['/mini_insta/profile/999999/follow',
+                     '/mini_insta/profile/999999/delete_follow',
+                     '/mini_insta/post/999999/like',
+                     '/mini_insta/post/999999/delete_like']:
+            with self.subTest(path=path):
+                self.assertEqual(self.client.post(path).status_code, 404)
+        self.assertEqual(Follow.objects.count(), 0)
+        self.assertEqual(Like.objects.count(), 0)
+
+    def test_accounts_without_profiles_cannot_act(self):
+        """Return a normal not-found response when an account has no profile."""
+        account = User.objects.create_user('no-social-profile')
+        self.client.force_login(account)
+        for path in self.action_paths():
+            with self.subTest(path=path):
+                self.assertEqual(self.client.post(path).status_code, 404)
+
+    def test_social_actions_require_csrf(self):
+        """Reject all four missing tokens and accept actual form submissions."""
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.actor_user)
+        for path in self.action_paths():
+            with self.subTest(path=path):
+                self.assertEqual(client.post(path).status_code, 403)
+        client.get(self.other.get_absolute_url())
+        token = client.cookies['csrftoken'].value
+        for path in self.action_paths():
+            with self.subTest(path=path):
+                self.assertEqual(client.post(path, {'csrfmiddlewaretoken': token})
+                                 .status_code, 302)
+        self.assertEqual(Follow.objects.count(), 0)
+        self.assertEqual(Like.objects.count(), 0)
+
+    def test_follow_button_tracks_relationship_state(self):
+        """Switch between Follow and Unfollow on the other profile's page."""
+        self.client.force_login(self.actor_user)
+        follow, unfollow = self.action_paths()[:2]
+        response = self.client.get(self.other.get_absolute_url())
+        self.assertContains(response, f'action="{follow}" method="POST"')
+        self.assertNotContains(response, f'action="{unfollow}"')
+        self.client.post(follow)
+        response = self.client.get(self.other.get_absolute_url())
+        self.assertContains(response, f'action="{unfollow}" method="POST"')
+        self.assertNotContains(response, f'action="{follow}"')
+        self.client.post(unfollow)
+        response = self.client.get(self.other.get_absolute_url())
+        self.assertContains(response, f'action="{follow}" method="POST"')
+
+    def test_like_buttons_work_on_detail_feed_and_search(self):
+        """Use the same Like/Unlike state across all existing post displays."""
+        self.client.force_login(self.actor_user)
+        Follow.objects.create(profile=self.other, follower_profile=self.actor)
+        like, unlike = self.action_paths()[2:]
+        pages = [reverse('mini_insta:show_post',
+                         kwargs={'pk': self.other_post.pk}),
+                 '/mini_insta/profile/feed',
+                 '/mini_insta/profile/search?query=caption']
+        for path in pages:
+            with self.subTest(path=path, state='not liked'):
+                response = self.client.get(path)
+                self.assertContains(response, f'action="{like}" method="POST"')
+                self.assertNotContains(response, f'action="{unlike}"')
+        self.client.post(like)
+        for path in pages:
+            with self.subTest(path=path, state='liked'):
+                response = self.client.get(path)
+                self.assertContains(response, f'action="{unlike}" method="POST"')
+                self.assertNotContains(response, f'action="{like}"')
+        self.client.post(unlike)
+        response = self.client.get(pages[0])
+        self.assertContains(response, f'action="{like}" method="POST"')
+
+    def test_anonymous_and_owner_pages_hide_action_controls(self):
+        """Keep public browsing readable and hide unavailable social controls."""
+        profile_page = self.other.get_absolute_url()
+        post_page = reverse('mini_insta:show_post',
+                            kwargs={'pk': self.other_post.pk})
+        for user in [None, self.other_user]:
+            if user is not None:
+                self.client.force_login(user)
+            for path in [profile_page, post_page]:
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                for action in self.action_paths():
+                    self.assertNotContains(response, f'action="{action}"')

@@ -17,6 +17,7 @@
 {% endif %}
 {# Show the number of likes above the caption. #}
 <p>{{ post.get_likes.count }} Likes</p>
+{% include 'mini_insta/post_like_controls.html' %}
 <p class="bio-text">{{ post.caption }}</p>
 
 {# Display comments for this post below its caption. #}
