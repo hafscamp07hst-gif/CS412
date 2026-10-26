@@ -49,7 +49,7 @@
             </a>
         </h3>
         <p><small>{{ post.timestamp }}</small></p>
-        {% with first_photo=post.get_all_photos.first %}
+        {% with first_photo=post.get_first_photo %}
         <a href="{% url 'mini_insta:show_post' post.pk %}">
             {% if first_photo %}
             <img class="feed-image" src="{{ first_photo.get_image_url }}"
@@ -61,6 +61,7 @@
         </a>
         {% endwith %}
         <p>{{ post.get_likes.count }} Likes</p>
+        {% include 'mini_insta/post_like_controls.html' %}
         <p class="bio-text">{{ post.caption }}</p>
         <a href="{% url 'mini_insta:show_post' post.pk %}">View Post</a>
     </div>

@@ -1,0 +1,17 @@
+{# File: mini_insta/templates/mini_insta/post_like_controls.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/23/2026 #}
+{# Description: Show the signed-in user's Like or Unlike form for a post. #}
+
+{% if request.user.is_authenticated and request.user != post.profile.user %}
+    {% if post.pk in liked_post_ids %}
+    <form action="{% url 'mini_insta:delete_like' post.pk %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">Unlike</button>
+    </form>
+    {% else %}
+    <form action="{% url 'mini_insta:like' post.pk %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">Like</button>
+    </form>
+    {% endif %}
+{% endif %}

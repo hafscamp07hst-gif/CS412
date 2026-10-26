@@ -26,7 +26,7 @@
         <p><small>{{ post.timestamp }}</small></p>
 
         {# Display only the first photo, as on the existing profile page. #}
-        {% with first_photo=post.get_all_photos.first %}
+        {% with first_photo=post.get_first_photo %}
         <a href="{% url 'mini_insta:show_post' post.pk %}">
             {% if first_photo %}
             <img class="feed-image" src="{{ first_photo.get_image_url }}"
@@ -40,6 +40,7 @@
         {% endwith %}
 
         <p>{{ post.get_likes.count }} Likes</p>
+        {% include 'mini_insta/post_like_controls.html' %}
         <p class="bio-text">{{ post.caption }}</p>
 
         {# Display each comment associated with this post. #}
@@ -57,6 +58,7 @@
         {% empty %}
         <p>No comments yet.</p>
         {% endfor %}
+        {% include 'mini_insta/post_comment_form.html' %}
 
         <a href="{% url 'mini_insta:show_post' post.pk %}">View Post</a>
     </div>

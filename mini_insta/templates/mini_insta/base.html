@@ -23,6 +23,7 @@
                 </form>
                 {% else %}
                 <a href="{% url 'mini_insta:login' %}">Login</a>
+                <a href="{% url 'mini_insta:create_profile' %}">Create Profile</a>
                 {% endif %}
             </nav>
             {% if request.user.is_authenticated %}

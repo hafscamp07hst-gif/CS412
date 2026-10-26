@@ -7,6 +7,21 @@
 {% block content %}
 <h2>{{ profile.display_name }}</h2>
 
+{# Visitors may follow another user's profile after logging in. #}
+{% if request.user.is_authenticated and request.user != profile.user %}
+    {% if is_following %}
+    <form action="{% url 'mini_insta:delete_follow' profile.pk %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">Unfollow</button>
+    </form>
+    {% else %}
+    <form action="{% url 'mini_insta:follow' profile.pk %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">Follow</button>
+    </form>
+    {% endif %}
+{% endif %}
+
 {# Only the owner can edit this profile or create posts for it. #}
 {% if request.user.is_authenticated and request.user == profile.user %}
 <p>
@@ -72,7 +87,7 @@
                 {# Link each post preview to its detail page. #}
                 {% for post in profile.get_all_posts %}
                 <div class="post-card">
-                    {% with first_photo=post.get_all_photos.first %}
+                    {% with first_photo=post.get_first_photo %}
                     <a href="{% url 'mini_insta:show_post' post.pk %}">
                         {# Use a placeholder when the post has no photos. #}
                         {% if first_photo %}

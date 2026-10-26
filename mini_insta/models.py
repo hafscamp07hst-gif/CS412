@@ -92,6 +92,13 @@ class Post(models.Model):
         photos = Photo.objects.filter(post=self).order_by('timestamp')
         return photos
 
+    def get_first_photo(self):
+        '''Return the oldest photo for a preview, or None if there are none.'''
+        photos = self.get_all_photos()
+        if len(photos) > 0:
+            return photos[0]
+        return None
+
 
     def get_all_comments(self):
         """Return this post's comments in the order they were created."""

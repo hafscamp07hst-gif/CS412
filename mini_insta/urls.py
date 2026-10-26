@@ -6,8 +6,14 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.views.generic import TemplateView
 from .views import (
+    CreateCommentView,
     CreatePostView,
+    CreateProfileView,
+    DeleteFollowView,
+    DeleteLikeView,
     DeletePostView,
+    FollowProfileView,
+    LikePostView,
     OwnProfileDetailView,
     PostDetailView,
     ProfileDetailView,
@@ -27,6 +33,7 @@ app_name = 'mini_insta'
 # Public pages use pk; private profile actions use the signed-in account.
 urlpatterns = [
     path('', ProfileListView.as_view(), name='show_all_profiles'),
+    path('create_profile', CreateProfileView.as_view(), name='create_profile'),
     path(
         'login/',
         auth_views.LoginView.as_view(
@@ -37,7 +44,10 @@ urlpatterns = [
     ),
     path(
         'logout/',
-        auth_views.LogoutView.as_view(next_page='mini_insta:logout_confirmation'),
+        auth_views.LogoutView.as_view(
+            next_page='mini_insta:logout_confirmation',
+            http_method_names=['post', 'options'],
+        ),
         name='logout',
     ),
     path(
@@ -46,6 +56,9 @@ urlpatterns = [
         name='logout_confirmation',
     ),
     path('profile/<int:pk>', ProfileDetailView.as_view(), name='show_profile'),
+    path('profile/<int:pk>/follow', FollowProfileView.as_view(), name='follow'),
+    path('profile/<int:pk>/delete_follow', DeleteFollowView.as_view(),
+         name='delete_follow'),
     path('profile', OwnProfileDetailView.as_view(), name='show_own_profile'),
     path(
         'profile/update',
@@ -65,6 +78,10 @@ urlpatterns = [
     path('profile/search', SearchView.as_view(), name='search'),
     path('profile/feed', ShowFeedView.as_view(), name='show_feed'),
     path('post/<int:pk>', PostDetailView.as_view(), name='show_post'),
+    path('post/<int:pk>/create_comment', CreateCommentView.as_view(),
+         name='create_comment'),
+    path('post/<int:pk>/like', LikePostView.as_view(), name='like'),
+    path('post/<int:pk>/delete_like', DeleteLikeView.as_view(), name='delete_like'),
     path('post/<int:pk>/update', UpdatePostView.as_view(), name='update_post'),
     path('post/<int:pk>/delete', DeletePostView.as_view(), name='delete_post'),
     path(

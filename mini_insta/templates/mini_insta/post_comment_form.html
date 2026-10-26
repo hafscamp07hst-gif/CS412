@@ -1,0 +1,12 @@
+{# File: mini_insta/templates/mini_insta/post_comment_form.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/23/2026 #}
+{# Description: Let a signed-in user comment on this post from any post display. #}
+
+{% if request.user.is_authenticated %}
+<form action="{% url 'mini_insta:create_comment' post.pk %}" method="POST">
+    {% csrf_token %}
+    <p><label for="comment-{{ post.pk }}">Write a comment:</label></p>
+    <p><textarea name="text" id="comment-{{ post.pk }}" rows="3" required></textarea></p>
+    <button type="submit">Add Comment</button>
+</form>
+{% endif %}
