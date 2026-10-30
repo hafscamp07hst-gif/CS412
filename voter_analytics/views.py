@@ -118,7 +118,7 @@ class VoterGraphsView(VoterListView):
             if len(party_voters) > 0:
                 parties.append(party)
                 counts.append(len(party_voters))
-        fig = go.Pie(labels=parties, values=counts)
+        fig = go.Pie(labels=parties, values=counts, textinfo='none')
         context['graph_parties'] = plotly.offline.plot(
             {'data': [fig], 'layout_title_text': 'Voters by Party'},
             auto_open=False,
