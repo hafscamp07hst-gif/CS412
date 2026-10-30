@@ -1,0 +1,39 @@
+{# File: voter_analytics/templates/voter_analytics/voters.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/30/2026 #}
+{# Description: List 100 voters per page with search and detail links. #}
+
+{% extends 'voter_analytics/base.html' %}
+
+{% block content %}
+<form action="{% url 'voter_analytics:voters' %}" method="GET">
+    {% include 'voter_analytics/search.html' %}
+</form>
+<a href="{% url 'voter_analytics:voters' %}">Clear filters</a>
+<h2>Voters</h2>
+<p>{{ page_obj.paginator.count }} matching voters</p>
+{% include 'voter_analytics/pagination.html' %}
+<div>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th><th>Street address</th><th>Date of birth</th>
+                <th>Party</th><th>Voter score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for voter in voters %}
+            <tr>
+                <td><a href="{% url 'voter_analytics:voter' voter.pk %}">{{ voter.first_name }} {{ voter.last_name }}</a></td>
+                <td>{{ voter.street_number }} {{ voter.street_name }}{% if voter.apartment_number %}, Apt {{ voter.apartment_number }}{% endif %}</td>
+                <td>{{ voter.date_of_birth }}</td>
+                <td>{{ voter.party_affiliation }}</td>
+                <td>{{ voter.voter_score }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No voters match these criteria.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'voter_analytics/pagination.html' %}
+{% endblock %}

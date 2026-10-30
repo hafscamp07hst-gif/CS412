@@ -1,0 +1,35 @@
+/* File: static/voter_analytics/styles.css
+   Author: Sung Tae Hwang (sthwang@bu.edu), 10/30/2026
+   Description: Basic styles for voter pages, using the class stylesheet. */
+
+body {
+    background-color: white;
+    color: slategray;
+    font-family: arial;
+    max-width: 960px;
+    margin: 20px auto;
+}
+
+h1, h2, header, footer {
+    background-color: aliceblue;
+    font-weight: normal;
+}
+
+a {
+    color: darkblue;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    border: 1px solid slategray;
+    padding: 5px;
+    text-align: left;
+}
+
+form {
+    margin: 10px 0;
+}

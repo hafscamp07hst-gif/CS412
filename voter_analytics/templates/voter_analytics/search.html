@@ -1,0 +1,63 @@
+{# File: voter_analytics/templates/voter_analytics/search.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/30/2026 #}
+{# Description: Choose optional voter search criteria. #}
+
+<h2>Search Voters</h2>
+<div>
+    <label for="party">Party affiliation
+        <select id="party" name="party">
+            <option value="">All</option>
+            {% for choice in parties %}
+            <option value="{{ choice }}"{% if party == choice %} selected{% endif %}>{{ choice }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label for="min_year">Minimum birth year (inclusive)
+        <select id="min_year" name="min_year">
+            <option value="">All</option>
+            {% for choice in years %}
+            <option value="{{ choice }}"{% if min_year == choice %} selected{% endif %}>{{ choice }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label for="max_year">Maximum birth year (inclusive)
+        <select id="max_year" name="max_year">
+            <option value="">All</option>
+            {% for choice in years %}
+            <option value="{{ choice }}"{% if max_year == choice %} selected{% endif %}>{{ choice }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label for="score">Voter score
+        <select id="score" name="score">
+            <option value="">All</option>
+            {% for choice in scores %}
+            <option value="{{ choice }}"{% if score == choice %} selected{% endif %}>{{ choice }}</option>
+            {% endfor %}
+        </select>
+    </label>
+</div>
+<div>
+    <p>Voted in these elections:</p>
+    <label>
+        <input type="checkbox" name="v20state" value="on"{% if v20state == 'on' %} checked{% endif %}>
+        v20state
+    </label>
+    <label>
+        <input type="checkbox" name="v21town" value="on"{% if v21town == 'on' %} checked{% endif %}>
+        v21town
+    </label>
+    <label>
+        <input type="checkbox" name="v21primary" value="on"{% if v21primary == 'on' %} checked{% endif %}>
+        v21primary
+    </label>
+    <label>
+        <input type="checkbox" name="v22general" value="on"{% if v22general == 'on' %} checked{% endif %}>
+        v22general
+    </label>
+    <label>
+        <input type="checkbox" name="v23town" value="on"{% if v23town == 'on' %} checked{% endif %}>
+        v23town
+    </label>
+</div>
+<button type="submit">Search</button>

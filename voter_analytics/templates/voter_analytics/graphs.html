@@ -1,0 +1,20 @@
+{# File: voter_analytics/templates/voter_analytics/graphs.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/30/2026 #}
+{# Description: Search voters and display three graphs of the results. #}
+
+{% extends 'voter_analytics/base.html' %}
+
+{% block content %}
+<form action="{% url 'voter_analytics:graphs' %}" method="GET">
+    {% include 'voter_analytics/search.html' %}
+</form>
+<a href="{% url 'voter_analytics:graphs' %}">Clear filters</a>
+<h2>Voter Graphs</h2>
+<p>{{ voter_count }} matching voters</p>
+{% if not voters %}
+<p>No voters match these criteria.</p>
+{% endif %}
+<div>{{ graph_birth_years|safe }}</div>
+<div>{{ graph_parties|safe }}</div>
+<div>{{ graph_elections|safe }}</div>
+{% endblock %}

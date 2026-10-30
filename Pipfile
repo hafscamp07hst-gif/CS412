@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 django = "*"
 pillow = "*"
+plotly = "==7.1.0"
 
 [dev-packages]
 

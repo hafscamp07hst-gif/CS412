@@ -1,0 +1,28 @@
+{# File: voter_analytics/templates/voter_analytics/base.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/30/2026 #}
+{# Description: Share the stylesheet and navigation for voter pages. #}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Voter Analytics</title>
+        <link rel="stylesheet" href="{% static 'voter_analytics/styles.css' %}">
+    </head>
+    <body>
+        <header>
+            <h1>Voter Analytics</h1>
+            <nav>
+                <a href="{% url 'voter_analytics:voters' %}">All Voters</a>
+                <a href="{% url 'voter_analytics:graphs' %}">Graphs</a>
+            </nav>
+        </header>
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+        <footer>CS412 | Sung Tae Hwang | sthwang@bu.edu</footer>
+    </body>
+</html>

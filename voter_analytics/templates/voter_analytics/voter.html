@@ -1,0 +1,30 @@
+{# File: voter_analytics/templates/voter_analytics/voter.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/30/2026 #}
+{# Description: Show all voter fields and a link to the address on Google Maps. #}
+
+{% extends 'voter_analytics/base.html' %}
+
+{% block content %}
+<h2>{{ voter.first_name }} {{ voter.last_name }}</h2>
+<table>
+    <tr><th>Record ID</th><td>{{ voter.pk }}</td></tr>
+    <tr><th>First name</th><td>{{ voter.first_name }}</td></tr>
+    <tr><th>Last name</th><td>{{ voter.last_name }}</td></tr>
+    <tr><th>Street number</th><td>{{ voter.street_number }}</td></tr>
+    <tr><th>Street name</th><td>{{ voter.street_name }}</td></tr>
+    <tr><th>Apartment number</th><td>{{ voter.apartment_number }}</td></tr>
+    <tr><th>ZIP code</th><td>{{ voter.zip_code }}</td></tr>
+    <tr><th>Date of birth</th><td>{{ voter.date_of_birth }}</td></tr>
+    <tr><th>Date of registration</th><td>{{ voter.date_of_registration }}</td></tr>
+    <tr><th>Party affiliation</th><td>{{ voter.party_affiliation }}</td></tr>
+    <tr><th>Precinct number</th><td>{{ voter.precinct_number }}</td></tr>
+    <tr><th>v20state</th><td>{{ voter.v20state }}</td></tr>
+    <tr><th>v21town</th><td>{{ voter.v21town }}</td></tr>
+    <tr><th>v21primary</th><td>{{ voter.v21primary }}</td></tr>
+    <tr><th>v22general</th><td>{{ voter.v22general }}</td></tr>
+    <tr><th>v23town</th><td>{{ voter.v23town }}</td></tr>
+    <tr><th>Voter score</th><td>{{ voter.voter_score }}</td></tr>
+</table>
+<p><a href="https://www.google.com/maps?q={{ voter.street_number }}+{{ voter.street_name }}+Newton+MA">View address on Google Maps</a></p>
+<p><a href="{% url 'voter_analytics:voters' %}">Back to All Voters</a></p>
+{% endblock %}

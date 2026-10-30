@@ -1,0 +1,24 @@
+{# File: voter_analytics/templates/voter_analytics/pagination.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 10/30/2026 #}
+{# Description: Change pages while keeping the selected search values. #}
+
+{% if is_paginated %}
+<form method="GET">
+    <input type="hidden" name="party" value="{{ party }}">
+    <input type="hidden" name="min_year" value="{{ min_year }}">
+    <input type="hidden" name="max_year" value="{{ max_year }}">
+    <input type="hidden" name="score" value="{{ score }}">
+    <input type="hidden" name="v20state" value="{{ v20state }}">
+    <input type="hidden" name="v21town" value="{{ v21town }}">
+    <input type="hidden" name="v21primary" value="{{ v21primary }}">
+    <input type="hidden" name="v22general" value="{{ v22general }}">
+    <input type="hidden" name="v23town" value="{{ v23town }}">
+    {% if page_obj.has_previous %}
+    <button name="page" value="{{ page_obj.previous_page_number }}">Previous</button>
+    {% endif %}
+    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    {% if page_obj.has_next %}
+    <button name="page" value="{{ page_obj.next_page_number }}">Next</button>
+    {% endif %}
+</form>
+{% endif %}
