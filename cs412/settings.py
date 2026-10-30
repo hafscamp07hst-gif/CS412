@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'restaurant', #A2
     'blog', #module3
     'mini_insta', #A3
+    'voter_analytics', #A7
 ]
 
 MIDDLEWARE = [
