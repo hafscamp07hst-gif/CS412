@@ -29,10 +29,11 @@ class VoterListView(ListView):
         min_year = self.request.GET.get('min_year', '')
         max_year = self.request.GET.get('max_year', '')
         years = [str(year) for year in range(1900, 2027)]
+        # Use the neighboring years to include January 1 and December 31.
         if min_year in years:
-            voters = voters.filter(date_of_birth__gte=f'{min_year}-01-01')
+            voters = voters.filter(date_of_birth__gt=f'{int(min_year) - 1}-12-31')
         if max_year in years:
-            voters = voters.filter(date_of_birth__lte=f'{max_year}-12-31')
+            voters = voters.filter(date_of_birth__lt=f'{int(max_year) + 1}-01-01')
 
         score = self.request.GET.get('score', '')
         if score in ['0', '1', '2', '3', '4', '5']:
@@ -95,8 +96,8 @@ class VoterGraphsView(VoterListView):
         counts = []
         for year in context['years']:
             year_voters = voters.filter(
-                date_of_birth__gte=f'{year}-01-01',
-                date_of_birth__lte=f'{year}-12-31',
+                date_of_birth__gt=f'{int(year) - 1}-12-31',
+                date_of_birth__lt=f'{int(year) + 1}-01-01',
             )
             if len(year_voters) > 0:
                 years.append(int(year))
