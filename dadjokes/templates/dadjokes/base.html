@@ -1,0 +1,29 @@
+{# File: dadjokes/templates/dadjokes/base.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 11/13/2026 #}
+{# Description: Share the stylesheet and navigation for Dad Jokes pages. #}
+
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dad Jokes</title>
+        <link rel="stylesheet" href="{% static 'dadjokes/styles.css' %}">
+    </head>
+    <body>
+        <header>
+            <h1>Dad Jokes</h1>
+            <nav>
+                <a href="{% url 'dadjokes:random' %}">Random Joke and Picture</a>
+                <a href="{% url 'dadjokes:jokes' %}">All Jokes</a>
+                <a href="{% url 'dadjokes:pictures' %}">All Pictures</a>
+            </nav>
+        </header>
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+        <footer>
+            <p>CS412 | Sung Tae Hwang | sthwang@bu.edu</p>
+        </footer>
+    </body>
+</html>

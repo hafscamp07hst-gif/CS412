@@ -1,0 +1,21 @@
+{# File: dadjokes/templates/dadjokes/pictures.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 11/13/2026 #}
+{# Description: List every picture without displaying jokes. #}
+
+{% extends 'dadjokes/base.html' %}
+
+{% block content %}
+<h2>All Pictures</h2>
+{% for picture in pictures %}
+<section>
+    <a href="{% url 'dadjokes:picture' picture.pk %}">
+        <img class="picture" src="{{ picture.image_url }}" alt="Picture {{ picture.pk }}">
+    </a>
+    <p>Contributed by {{ picture.name }}</p>
+    <p>Created: {{ picture.timestamp }}</p>
+    <p><a href="{% url 'dadjokes:picture' picture.pk %}">View Picture Details</a></p>
+</section>
+{% empty %}
+<p>No pictures have been added yet.</p>
+{% endfor %}
+{% endblock %}

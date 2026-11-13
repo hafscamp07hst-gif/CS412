@@ -1,0 +1,28 @@
+{# File: dadjokes/templates/dadjokes/random.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 11/13/2026 #}
+{# Description: Show one randomly selected joke and picture. #}
+
+{% extends 'dadjokes/base.html' %}
+
+{% block content %}
+<h2>Random Joke and Picture</h2>
+<section>
+    {% if joke %}
+    <p>{{ joke.text }}</p>
+    <p>Contributed by {{ joke.name }}</p>
+    <p><a href="{% url 'dadjokes:joke' joke.pk %}">View Joke Details</a></p>
+    {% else %}
+    <p>No jokes have been added yet.</p>
+    {% endif %}
+</section>
+<section>
+    {% if picture %}
+    <img class="picture" src="{{ picture.image_url }}" alt="Picture {{ picture.pk }}">
+    <p>Contributed by {{ picture.name }}</p>
+    <p><a href="{% url 'dadjokes:picture' picture.pk %}">View Picture Details</a></p>
+    {% else %}
+    <p>No pictures have been added yet.</p>
+    {% endif %}
+</section>
+<p><a href="{% url 'dadjokes:random' %}">Show Another Joke and Picture</a></p>
+{% endblock %}

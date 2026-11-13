@@ -1,0 +1,18 @@
+{# File: dadjokes/templates/dadjokes/jokes.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 11/13/2026 #}
+{# Description: List every joke without displaying pictures. #}
+
+{% extends 'dadjokes/base.html' %}
+
+{% block content %}
+<h2>All Jokes</h2>
+{% for joke in jokes %}
+<section>
+    <p><a href="{% url 'dadjokes:joke' joke.pk %}">{{ joke.text }}</a></p>
+    <p>Contributed by {{ joke.name }}</p>
+    <p>Created: {{ joke.timestamp }}</p>
+</section>
+{% empty %}
+<p>No jokes have been added yet.</p>
+{% endfor %}
+{% endblock %}

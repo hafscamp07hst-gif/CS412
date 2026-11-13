@@ -1,0 +1,43 @@
+/* File: static/dadjokes/styles.css
+   Author: Sung Tae Hwang (sthwang@bu.edu), 11/13/2026
+   Description: Basic styles for the Dad Jokes pages. */
+
+body {
+    background-color: white;
+    color: slategray;
+    font-family: arial;
+    max-width: 960px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+h1, h2, header, footer {
+    background-color: aliceblue;
+    font-weight: normal;
+}
+
+header, footer {
+    padding: 15px;
+}
+
+nav a {
+    display: inline-block;
+    margin: 5px 15px 5px 0;
+}
+
+a {
+    color: darkblue;
+}
+
+section {
+    border: 1px solid slategray;
+    margin: 15px 0;
+    padding: 15px;
+}
+
+.picture {
+    display: block;
+    width: 500px;
+    max-width: 100%;
+    height: auto;
+}

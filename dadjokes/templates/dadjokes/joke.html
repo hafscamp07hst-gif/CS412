@@ -1,0 +1,15 @@
+{# File: dadjokes/templates/dadjokes/joke.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 11/13/2026 #}
+{# Description: Display the text, contributor, and creation time of one joke. #}
+
+{% extends 'dadjokes/base.html' %}
+
+{% block content %}
+<h2>Joke {{ joke.pk }}</h2>
+<section>
+    <p>{{ joke.text }}</p>
+    <p>Contributed by {{ joke.name }}</p>
+    <p>Created: {{ joke.timestamp }}</p>
+</section>
+<p><a href="{% url 'dadjokes:jokes' %}">Back to All Jokes</a></p>
+{% endblock %}

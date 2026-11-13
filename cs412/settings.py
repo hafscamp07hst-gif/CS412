@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'blog', #module3
     'mini_insta', #A3
     'voter_analytics', #A7
+    'dadjokes', #A9
+    'rest_framework', #django rest framework
 ]
 
 MIDDLEWARE = [

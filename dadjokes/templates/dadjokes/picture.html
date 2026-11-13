@@ -1,0 +1,15 @@
+{# File: dadjokes/templates/dadjokes/picture.html #}
+{# Author: Sung Tae Hwang (sthwang@bu.edu), 11/13/2026 #}
+{# Description: Display the image, contributor, and creation time of one picture. #}
+
+{% extends 'dadjokes/base.html' %}
+
+{% block content %}
+<h2>Picture {{ picture.pk }}</h2>
+<section>
+    <img class="picture" src="{{ picture.image_url }}" alt="Picture {{ picture.pk }}">
+    <p>Contributed by {{ picture.name }}</p>
+    <p>Created: {{ picture.timestamp }}</p>
+</section>
+<p><a href="{% url 'dadjokes:pictures' %}">Back to All Pictures</a></p>
+{% endblock %}
