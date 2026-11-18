@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'voter_analytics', #A7
     'dadjokes', #A9
     'rest_framework', #django rest framework
+    'rest_framework.authtoken', #Task 3 authentication tokens
 ]
 
 MIDDLEWARE = [

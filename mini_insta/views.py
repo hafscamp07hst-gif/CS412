@@ -2,7 +2,7 @@
 # Author: Sung Tae Hwang (sthwang@bu.edu), 9/28/2026
 # Description: Register accounts, display profiles, and manage profiles and posts.
 
-from django.contrib.auth import login
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, HttpResponseForbidden
@@ -16,6 +16,13 @@ from django.views.generic import (
     UpdateView,
     View,
 )
+from rest_framework import generics
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from .forms import (
     CreateCommentForm,
     CreatePostForm,
@@ -24,6 +31,7 @@ from .forms import (
     UpdateProfileForm,
 )
 from .models import Follow, Like, Photo, Post, Profile
+from .serializers import PhotoSerializer, PostSerializer, ProfileSerializer
 
 
 class MiniInstaLoginRequiredMixin(LoginRequiredMixin):
@@ -467,3 +475,125 @@ class CreateCommentView(MiniInstaLoginRequiredMixin, CreateView):
     def get_success_url(self):
         """Return the post detail URL after the comment has been saved."""
         return reverse('mini_insta:show_post', kwargs={'pk': self.object.post_id})
+
+
+# REST API views.
+class LoginAPIView(APIView):
+    """Validate credentials and return a token and the user's profile."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """Log in through the API without creating a browser session."""
+        user = authenticate(
+            request,
+            username=request.data.get('username'),
+            password=request.data.get('password'),
+        )
+        if user is None:
+            return Response({'error': 'Invalid credentials.'}, status=401)
+
+        # Match the oldest-profile choice made by the existing web views.
+        profiles = Profile.objects.filter(user=user).order_by('pk')
+        if len(profiles) == 0:
+            return Response({'error': 'This account does not have a profile.'},
+                            status=403)
+
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user': {'id': user.id, 'username': user.username},
+            'profile': ProfileSerializer(profiles[0]).data,
+        })
+
+
+class ProfileListAPIView(generics.ListCreateAPIView):
+    """Return all profiles without allowing profile creation."""
+
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'head', 'options']
+
+
+class ProfileDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """Return one profile selected by its primary key."""
+
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'head', 'options']
+
+
+class ProfilePostListAPIView(generics.ListCreateAPIView):
+    """Return one profile's posts, newest first."""
+
+    serializer_class = PostSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'head', 'options']
+
+    def get_queryset(self):
+        """Find the profile and reuse its existing post accessor."""
+        profiles = Profile.objects.filter(pk=self.kwargs['pk'])
+        if len(profiles) == 0:
+            raise Http404('Profile not found.')
+        return profiles[0].get_all_posts()
+
+
+class ProfilePhotoListAPIView(generics.ListCreateAPIView):
+    """Return the photos attached to one profile's posts."""
+
+    serializer_class = PhotoSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'head', 'options']
+
+    def get_queryset(self):
+        """Find the profile and return only photos belonging to its posts."""
+        profiles = Profile.objects.filter(pk=self.kwargs['pk'])
+        if len(profiles) == 0:
+            raise Http404('Profile not found.')
+        return Photo.objects.filter(post__profile=profiles[0]).order_by('timestamp')
+
+
+class ProfileFeedAPIView(generics.ListCreateAPIView):
+    """Return posts by the profiles followed by the selected profile."""
+
+    serializer_class = PostSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'head', 'options']
+
+    def get_queryset(self):
+        """Use the token's profile and reject requests for someone else's feed."""
+        profiles = Profile.objects.filter(user=self.request.user).order_by('pk')
+        if len(profiles) == 0:
+            raise PermissionDenied('This account does not have a profile.')
+        profile = profiles[0]
+        if self.kwargs['pk'] != profile.pk:
+            raise PermissionDenied('You can only read your own feed.')
+        return profile.get_post_feed()
+
+
+class PostListAPIView(generics.ListCreateAPIView):
+    """Return all posts or create a post with optional uploaded photos."""
+
+    queryset = Post.objects.all().order_by('-timestamp')
+    serializer_class = PostSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """Save the post and handle files like the existing CreatePostView."""
+        profiles = Profile.objects.filter(user=self.request.user).order_by('pk')
+        if len(profiles) == 0:
+            raise PermissionDenied('This account does not have a profile.')
+        post = serializer.save(profile=profiles[0])
+        files = self.request.FILES.getlist('files')
+        for image_file in files:
+            photo = Photo(post=post, image_file=image_file)
+            photo.save()
